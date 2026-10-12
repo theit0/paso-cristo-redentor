@@ -9,8 +9,10 @@
 ## Fase 2 — Modelo
 - [x] **5. Baselines + métricas** ([docs/baselines.md](docs/baselines.md), `python -m app.ml.evaluate`). Target: cerrado para autos (total o solo cargas). Validación dejando un año afuera.
   El mejor es **Markov** (estado de hoy + mes). Vara a superar en invierno (Brier): **0,130 a 1 día · 0,191 a 3 · 0,206 a 7 · 0,229 a 14** (= climatología: a 2 semanas el estado de hoy ya no informa). "Mañana igual que hoy" pierde contra la climatología desde los 3 días.
-- [ ] **6. Modelo A, cierre**: P(cierre | hoy abierto), regresión logística → gradient boosting. Calibrar.
-- [ ] **7. Modelo B, reapertura**: supervivencia sobre días cerrado + nieve acumulada + ventana estable pronosticada.
+- [x] **6. Modelo de cierre y reapertura** ([docs/evaluacion.md](docs/evaluacion.md)): un solo modelo P(cerrado en t+h), h=1–7, con estado actual + nieve pasada + pronóstico JMA + interacciones.
+  **Gana la regresión logística** (al boosting también). Brier invierno: **0,093 / 0,102 / 0,147** a 1/3/7 días vs Markov 0,130 / 0,191 / 0,206.
+  Aciertos a 3 días: 86% (Markov 74%); en los días en que el estado cambia: **68%** (Markov 23%). Calibración buena en los extremos; algo subestimada en 30–60% a 1–3 días.
+- [x] ~~**7. Modelo B, reapertura (supervivencia)**~~: no hizo falta. El modelo único predice "¿sigue cerrado?" un 52% mejor que Markov. Retomar solo si la reapertura falla en producción.
 - [ ] **8. Endpoint `/api/predict?date=`**: combina A y B según el estado actual; devuelve probabilidad y confianza según la anticipación (0–24 h, 1–7 d, >10 d → climatología).
 
 ## Fase 3 — Producto
