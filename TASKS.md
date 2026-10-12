@@ -19,5 +19,5 @@
   **Reentrenar** cada tanto: actualizar `closures.csv` con el registrador, `download_weather`, `export`.
 
 ## Fase 3 — Producto
-- [ ] **9. Frontend**: selector de fecha, probabilidad, historial y pronóstico.
+- [x] **9. Frontend**: estado actual, tarjetas de los próximos 8 días (veredicto, probabilidad, nieve prevista, confianza), consulta de cualquier fecha hasta 1 año, franja de los últimos 60 días (`/api/history`). Sin dependencias extra; claro/oscuro; responsive.
 - [ ] **10. Deploy** (back + front + registrador).

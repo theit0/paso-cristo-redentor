@@ -45,6 +45,7 @@ def predict_one(target: date, today: date, official: dict, status: dict, obs: di
     else:  # sin pronóstico útil: tasa histórica de cierre para esa fecha
         p, fuente, confianza = predict.climatology(target), "climatologia", "baja"
     metricas = predict.model()["metricas_invierno"].get(str(h))
+    nieve = fc.get(target, {}).get("snowfall_sum") if 1 <= h <= predict.MAX_HORIZON else None
     return {
         "fecha": target.isoformat(),
         "dias_adelante": h,
@@ -54,7 +55,20 @@ def predict_one(target: date, today: date, official: dict, status: dict, obs: di
         "confianza": confianza,
         "fuente": fuente,
         "aciertos_historicos_invierno": metricas and metricas["aciertos"],
+        "nieve_pronosticada_cm": None if nieve is None else round(nieve, 1),
     }
+
+
+@router.get("/history")
+def history(days: int = Query(60, ge=1, le=1000)):
+    """Estado por día (abierto / solo_cargas / total): histórico curado + registrador."""
+    today = live.today()
+    try:
+        status = live.status_history()
+    except httpx.HTTPError as e:
+        raise HTTPException(503, f"No se pudo leer el historial: {e}") from e
+    dates = [today - timedelta(days=k) for k in range(days, 0, -1)]
+    return [{"fecha": d.isoformat(), "estado": status.get(d, "abierto")} for d in dates]
 
 
 @router.get("/predict")
