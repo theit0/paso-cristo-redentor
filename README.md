@@ -10,6 +10,8 @@ backend/    FastAPI + Python (registrador de datos, API, después ML)
     store.py      lectura/escritura de los JSONL
     collect.py    registrador
 frontend/   React + Vite + TypeScript
+  scripts/      herramientas sueltas (p. ej. juntar titulares)
+datasets/   datos curados a mano: histórico de cierres (ver datasets/README.md)
 data/       worktree de la rama `data` (no está en main)
 TASKS.md    hoja de ruta
 ```
