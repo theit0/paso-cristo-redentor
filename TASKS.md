@@ -19,6 +19,5 @@
   **Reentrenar** cada tanto: actualizar `closures.csv` con el registrador, `download_weather`, `export`.
 
 ## Fase 3 — Producto
-- [x] **9. Frontend**: estado actual, tarjetas de los próximos 8 días (veredicto, probabilidad, nieve prevista, confianza), consulta de cualquier fecha hasta 1 año, franja de los últimos 60 días (`/api/history`). Sin dependencias extra; claro/oscuro; responsive.
-  **Rediseño (dirección B):** estado como señal vial, tarjetas que se llenan con la chance de abierto, mapa topográfico (Leaflet + OpenTopoMap) con 5 puntos de la ruta y su nieve prevista (`/api/weather`), y 12 calendarios mensuales por año 2022–2026 con resumen (`/api/history?year=`).
+- [x] **9. Frontend** (shadcn/ui + Tailwind): un selector de fecha (hoy → 1 año) y el resultado: **Abierto** o **Cerrado** (P(cerrado) ≥ 50%) con su porcentaje, una barra y la fuente/confianza. Se probaron versiones con mapa y calendarios anuales; se simplificó a pedido.
 - [ ] **10. Deploy** (back + front + registrador).

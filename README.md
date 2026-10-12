@@ -35,8 +35,8 @@ flowchart TB
 
     subgraph PROD["Producción"]
         direction LR
-        WEB["Vercel<br/>React estático<br/>rewrite /api/* → Railway"]
-        API["Railway<br/>FastAPI ~60 MB<br/>/api/predict · /api/history"]
+        WEB["Vercel<br/>React + shadcn/ui<br/>rewrite /api/* → Railway"]
+        API["Railway<br/>FastAPI ~60 MB<br/>/api/predict"]
         WEB --> API
     end
 
@@ -120,8 +120,8 @@ sequenceDiagram
     participant D as GitHub rama data
     participant O as Open-Meteo
 
-    U->>V: abre la página
-    V->>R: GET /api/predict (vía rewrite, mismo dominio)
+    U->>V: elige una fecha
+    V->>R: GET /api/predict?date=… (vía rewrite, mismo dominio)
     R->>G: estado actual (si el caché tiene más de 10 min)
     G-->>R: ABIERTO / CERRADO + avisos
     R->>D: historial del registrador (caché 1 h)
@@ -129,11 +129,9 @@ sequenceDiagram
     Note over R: historial por día = closures.csv + registrador + hoy
     R->>O: clima de los últimos 61 días (best_match) y pronóstico JMA a 7 días (caché 1 h)
     O-->>R: datos horarios → resumen por día, peor de los dos lados
-    Note over R: para cada uno de los 8 días: features → probabilidad
-    R-->>V: 8 predicciones con probabilidad, veredicto, confianza
-    V->>R: GET /api/history
-    R-->>V: estado de los últimos 60 días
-    V-->>U: tarjetas + historial
+    Note over R: features de esa fecha → probabilidad
+    R-->>V: probabilidad de abierto/cerrado, fuente, confianza
+    V-->>U: Abierto o Cerrado + porcentaje
 ```
 
 Con caché caliente la respuesta tarda ~10 ms; sin caché, ~1,3 s (hasta 7 pedidos: 1 al Ministerio,
@@ -152,14 +150,14 @@ flowchart TD
     OFF --> P["P cerrado"]
     MOD --> P
     CLIM --> P
-    P --> V{"veredicto"}
-    V -->|"P ≥ 65%"| C["cerrado"]
-    V -->|"35% < P < 65%"| I["incierto"]
-    V -->|"P ≤ 35%"| A["abierto"]
+    P --> V{"P cerrado ≥ 50%"}
+    V -->|sí| C["Cerrado"]
+    V -->|no| A["Abierto"]
 ```
 
 Más allá de 7 días no hay pronóstico archivado para entrenar, y a 14 días el estado de hoy ya no aporta
 (Markov empata con la climatología), así que lo honesto es devolver el promedio histórico.
+La app muestra Abierto/Cerrado con el porcentaje; la API además devuelve `veredicto` con "incierto" entre 35% y 65%.
 
 ### 5. Qué ve el modelo
 
@@ -223,8 +221,7 @@ npm run dev                    # :5173, /api va al backend por proxy
 
 - `GET /api/predict?date=AAAA-MM-DD` → probabilidad de cerrado/abierto, veredicto, confianza y fuente
   (`estado_oficial` hoy, `modelo` a 1–7 días, `climatologia` más allá). Sin `date`: próximos 8 días.
-- `GET /api/history?days=60` → estado por día (`abierto` / `solo_cargas` / `total`).
-- `GET /api/status`, `/api/status/history`, `/api/forecast/{las_cuevas|portillo}`: datos del registrador.
+- `GET /api/status` → estado oficial en vivo.
 
 ## Modelo
 

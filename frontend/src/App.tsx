@@ -1,122 +1,103 @@
-import { useCallback, useEffect, useState } from 'react'
-import { fetchPredict, fetchWeather, type Prediccion, type PredictResponse, type PuntoClima } from './api'
-import { DayStrip } from './components/DayStrip'
-import { PointPanel } from './components/PointPanel'
-import { WeatherMap } from './components/WeatherMap'
-import { YearCalendar } from './components/YearCalendar'
-import { asDate, pct } from './format'
+import { addDays, format, startOfToday } from 'date-fns'
+import { es } from 'date-fns/locale'
+import { CalendarIcon } from 'lucide-react'
+import { useState } from 'react'
 
-// "Mo-Su 09:00-19:00 open \"Habilitado solo para ...\"" -> texto entre comillas
-const note = (s: string | null) => s?.match(/"(.*)"/)?.[1] ?? s
+import { fetchPrediction, type Prediccion } from '@/api'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Progress } from '@/components/ui/progress'
 
-function DateQuery({ today }: { today: string }) {
-  const [result, setResult] = useState<Prediccion | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const max = new Date(asDate(today).getTime() + 365 * 864e5).toISOString().slice(0, 10)
+const FUENTE = {
+  estado_oficial: 'Estado oficial de hoy',
+  modelo: 'Pronóstico del tiempo + historial',
+  climatologia: 'Promedio de otros años (a más de 7 días no hay pronóstico)',
+}
 
-  const choose = (value: string) => {
-    setResult(null)
-    setError(null)
-    if (!value) return
-    fetchPredict(value)
-      .then(r => setResult(cur => (r.predicciones[0].fecha === value ? r.predicciones[0] : cur)))
-      .catch(e => setError(String(e.message ?? e)))
-  }
-
+function Result({ p }: { p: Prediccion }) {
+  const cerrado = p.prob_cerrado >= 0.5
+  const abiertoPct = Math.round(p.prob_abierto * 100)
+  const cerradoPct = 100 - abiertoPct // complementarios: redondear ambos por separado puede sumar 101
+  const prob = cerrado ? cerradoPct : abiertoPct
   return (
-    <div className="query">
-      <label>
-        ¿Otra fecha? <input type="date" min={today} max={max} onChange={e => choose(e.target.value)} />
-      </label>
-      {error && <span className="error">{error}</span>}
-      {result && (
-        <span>
-          <b className={`t-${result.veredicto}`}>{pct(result.prob_abierto)} abierto</b>{' '}
-          <span className="muted">
-            {result.fuente === 'climatologia' ? '· promedio de otros años (sin pronóstico a esa distancia)' : `· confianza ${result.confianza}`}
-          </span>
-        </span>
-      )}
+    <div className="space-y-4 text-center">
+      <p className={`text-5xl font-semibold tracking-tight ${cerrado ? 'text-red-600' : 'text-emerald-600'}`}>
+        {cerrado ? 'Cerrado' : 'Abierto'}
+      </p>
+      <p className="text-muted-foreground">
+        {prob}% de probabilidad de que esté {cerrado ? 'cerrado' : 'abierto'}
+      </p>
+      <div className="space-y-1 text-left">
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>Abierto {abiertoPct}%</span>
+          <span>Cerrado {cerradoPct}%</span>
+        </div>
+        <Progress value={p.prob_abierto * 100} aria-label="Probabilidad de abierto" />
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {FUENTE[p.fuente]} · confianza {p.confianza}
+      </p>
     </div>
   )
 }
 
 export default function App() {
-  const [data, setData] = useState<PredictResponse | null>(null)
-  const [weather, setWeather] = useState<PuntoClima[]>([])
-  const [selected, setSelected] = useState('las_cuevas')
+  const today = startOfToday()
+  const [date, setDate] = useState<Date>()
+  const [open, setOpen] = useState(false)
+  const [result, setResult] = useState<Prediccion | null>(null)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchPredict().then(setData).catch(e => setError(String(e.message ?? e)))
-    fetchWeather().then(setWeather).catch(() => {}) // el mapa es secundario: si falla, no se muestra
-  }, [])
-
-  const onSelect = useCallback((id: string) => setSelected(id), [])
-  const estado = data?.estado_actual
-  const abierto = estado?.estado === 'ABIERTO'
-  const point = weather.find(p => p.id === selected)
+  const choose = (d: Date | undefined) => {
+    setDate(d)
+    setOpen(false)
+    setResult(null)
+    setError(null)
+    if (!d) return
+    const iso = format(d, 'yyyy-MM-dd')
+    setLoading(true)
+    fetchPrediction(iso)
+      .then(p => setResult(cur => (p.fecha === iso ? p : cur)))
+      .catch(e => setError(String(e.message ?? e)))
+      .finally(() => setLoading(false))
+  }
 
   return (
-    <>
-      <header className={`top ${estado ? (abierto ? 'is-open' : 'is-closed') : ''}`}>
-        <div className="wrap top-inner">
-          <div>
-            <div className="eyebrow">Paso internacional · Mendoza ↔ Los Andes</div>
-            <h1>Cristo Redentor</h1>
-          </div>
-          {estado && (
-            <div className="sign">
-              <div className="sign-state">{abierto ? 'Abierto' : 'Cerrado'}</div>
-              <div className="sign-note">{note(estado.horario_cancilleria) ?? note(estado.horario)}</div>
-              <div className="sign-src">Fuente oficial · {estado.source_time?.slice(11, 16) ?? '—'} h</div>
-            </div>
-          )}
-        </div>
-      </header>
+    <main className="flex min-h-svh items-center justify-center bg-muted/40 p-4">
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Paso Cristo Redentor</CardTitle>
+          <CardDescription>¿Va a estar abierto el paso a Chile?</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-full justify-start font-normal">
+                <CalendarIcon />
+                {date ? format(date, "EEEE d 'de' MMMM yyyy", { locale: es }) : 'Elegí la fecha del viaje'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="center">
+              <Calendar
+                mode="single"
+                locale={es}
+                selected={date}
+                onSelect={choose}
+                disabled={{ before: today, after: addDays(today, 365) }}
+                startMonth={today}
+                endMonth={addDays(today, 365)}
+              />
+            </PopoverContent>
+          </Popover>
 
-      <main className="wrap">
-        {error && <p className="panel error">No se pudo cargar la predicción: {error}</p>}
-        {!data && !error && <p className="panel muted">Cargando…</p>}
-
-        {data && (
-          <section className="panel">
-            <div className="panel-head">
-              <h2>Próximos días</h2>
-              <DateQuery today={data.hoy} />
-            </div>
-            <DayStrip days={data.predicciones} />
-            <p className="muted small">
-              La barra de cada día se llena con la chance de que esté abierto. "Incierto" = entre 35% y 65%.
-              En inviernos anteriores acertó {pct(data.predicciones[1]?.aciertos_historicos_invierno ?? 0)} a 1 día
-              y {pct(data.predicciones[7]?.aciertos_historicos_invierno ?? 0)} a 7.
-            </p>
-          </section>
-        )}
-
-        {weather.length > 0 && (
-          <section className="panel map-panel">
-            <div className="panel-head">
-              <h2>Clima en la ruta</h2>
-              <span className="muted small">Círculo más grande y más azul = más nieve en las próximas 72 h</span>
-            </div>
-            <div className="map-layout">
-              <WeatherMap points={weather} selected={selected} onSelect={onSelect} />
-              {point && <PointPanel p={point} />}
-            </div>
-          </section>
-        )}
-
-        {data && <YearCalendar today={data.hoy} />}
-
-        <footer className="muted small">
-          Estimación, no información oficial. Antes de viajar consultá{' '}
-          <a href="https://www.argentina.gob.ar/seguridad/pasosinternacionales" target="_blank" rel="noreferrer">pasos internacionales</a>
-          {' '}y <a href="https://www.pasosfronterizos.gov.cl/" target="_blank" rel="noreferrer">Pasos Fronterizos Chile</a>.
-          Clima: <a href="https://open-meteo.com" target="_blank" rel="noreferrer">Open-Meteo</a>.
-          {data && ` Modelo del ${data.modelo}.`}
-        </footer>
-      </main>
-    </>
+          {loading && <p className="text-center text-sm text-muted-foreground">Calculando…</p>}
+          {error && <p className="text-center text-sm text-red-600">No se pudo calcular: {error}</p>}
+          {result && <Result p={result} />}
+        </CardContent>
+      </Card>
+    </main>
   )
 }
