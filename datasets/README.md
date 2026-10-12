@@ -20,6 +20,22 @@ Reconstruido a mano desde titulares de prensa (`news_headlines.csv`). Una fila p
 
 Control: 2023 da 58 días cerrados al 11/9 (la prensa informó 58–63); el cierre más largo por año coincide con lo publicado (12 días en 2022, 34 en 2026).
 
+## weather_observed.csv / weather_forecast.csv — clima diario 2022→hoy
+
+Open-Meteo para `las_cuevas` y `portillo`, resumido por día en hora de Mendoza
+(`_sum` precipitación y nieve en mm/cm, `_min`/`_max`/`_mean` del resto; NaN si faltan horas).
+
+- **weather_observed.csv**: [Historical Forecast API](https://open-meteo.com/en/docs/historical-forecast-api),
+  primeras horas de cada corrida ≈ lo que pasó. Incluye isoterma cero, profundidad de nieve y visibilidad.
+  Sirve para features del **pasado** (nieve acumulada, días desde la última nevada).
+- **weather_forecast.csv**: [Previous Runs API](https://open-meteo.com/en/docs/previous-runs-api),
+  lo que se pronosticaba `lead` días antes (1–7). Sirve para features del **futuro** sin hacer trampa.
+  - `jma_seamless`: desde 2022, sin ráfagas.
+  - `best_match`: desde 2024, con ráfagas (más preciso, menos historia).
+  - Ningún modelo archiva isoterma cero a 1–7 días.
+
+Regenerar (tarda ~15 min): `cd backend && pip install -r requirements-ml.txt && python -m scripts.download_weather`
+
 ## news_headlines.csv
 
 Titulares con fecha de Google News, 2021–2026. Regenerar con:

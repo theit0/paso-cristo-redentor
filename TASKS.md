@@ -4,7 +4,7 @@
 - [x] **1. Registrador**: estado oficial del paso (Ministerio de Seguridad) + pronóstico Open-Meteo (Las Cuevas y Portillo) → disco. API `/api/status`, `/api/forecast/{location}`. Front muestra el estado actual. *(SQLite reemplazado por JSONL en la tarea 2.)*
 - [x] **2. Registrador cada hora en la nube**: GitHub Actions → rama `data` (JSONL). Estado cada hora, pronóstico cada 6 h. Si una fuente falla, el job falla y GitHub avisa por mail.
 - [x] **3. Histórico de cierres 2022–2026**: 100 períodos reconstruidos desde ~4.000 titulares de Google News → [`datasets/closures.csv`](datasets/closures.csv). 2021 descartado (poca cobertura + pandemia). Ver [datasets/README.md](datasets/README.md).
-- [ ] **4. Pronósticos históricos**: Open-Meteo Historical Forecast (2021+) y Previous Runs (anticipación 1–7 días, 2024+) para esas fechas. Entrenar con lo pronosticado, no con lo observado.
+- [x] **4. Clima histórico**: diario 2022→hoy en `datasets/weather_*.csv`. Observado (Historical Forecast) + pronosticado a 1–7 días (Previous Runs: JMA desde 2022, best_match desde 2024). Al predecir en vivo hay que pedir el mismo modelo (`jma_seamless`) que se usó para entrenar.
 
 ## Fase 2 — Modelo
 - [ ] **5. Baselines + métricas**: "mañana igual que hoy" y tasa histórica por fecha. Brier score, curva de confiabilidad.
