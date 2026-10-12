@@ -35,7 +35,7 @@ Después, para actualizar: `git -C data pull`. No correr el registrador local so
 ```bash
 cd backend
 python -m venv .venv && .venv/Scripts/activate   # Linux/mac: source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-ml.txt   # servidor + pytest + lo necesario para entrenar
 uvicorn app.main:app --reload  # API en :8000, lee ../data
 python -m pytest
 ```

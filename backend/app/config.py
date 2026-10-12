@@ -32,4 +32,6 @@ LOCATIONS = {
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_REPO = os.getenv("GITHUB_REPO", "theit0/paso-cristo-redentor")
 
-CORS_ORIGINS =os.getenv("PASO_CORS_ORIGINS", "http://localhost:5173").split(",")
+# Frontend compilado: si existe, lo sirve el mismo servicio (ver main.py).
+STATIC_DIR = Path(os.getenv("PASO_STATIC_DIR", REPO_DIR / "frontend" / "dist"))
+CORS_ORIGINS = os.getenv("PASO_CORS_ORIGINS", "http://localhost:5173").split(",")

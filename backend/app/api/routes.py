@@ -1,16 +1,11 @@
 from datetime import date, timedelta
-from itertools import islice
 
 import httpx
 from fastapi import APIRouter, HTTPException, Query
 
-from app import live, predict, store
+from app import live, predict
 
 router = APIRouter(prefix="/api")
-
-
-def public(status: dict) -> dict:
-    return {k: v for k, v in status.items() if k != "raw"}
 
 
 @router.get("/health")
@@ -19,16 +14,13 @@ def health():
 
 
 @router.get("/status")
-def latest_status():
-    latest = next(store.newest_first("status"), None)
-    if latest is None:
-        raise HTTPException(404, "Sin datos todavía: ver README (rama data)")
-    return public(latest)
-
-
-@router.get("/status/history")
-def status_history(limit: int = Query(168, ge=1, le=5000)):
-    return [public(s) for s in islice(store.newest_first("status"), limit)]
+def official_status():
+    """Estado oficial en vivo (caché de 10 min). El historial completo está en la rama `data`."""
+    try:
+        s = live.official_status()
+    except httpx.HTTPError as e:
+        raise HTTPException(503, f"No se pudo obtener el estado oficial: {e}") from e
+    return {k: v for k, v in s.items() if k != "raw"}
 
 
 def verdict(p: float) -> str:
@@ -90,10 +82,3 @@ def predict_endpoint(date_: date | None = Query(None, alias="date", description=
         "predicciones": [predict_one(t, today, official, status, obs, fc) for t in targets],
     }
 
-
-@router.get("/forecast/{location}")
-def latest_forecast(location: str):
-    f = next((f for f in store.newest_first("forecast") if f["location"] == location), None)
-    if f is None:
-        raise HTTPException(404, f"Sin pronóstico para {location}")
-    return {"fetched_at": f["fetched_at"], **f["data"]}
