@@ -1,12 +1,14 @@
-import json
+from itertools import islice
 
 from fastapi import APIRouter, HTTPException, Query
 
-from app import db
+from app import store
 
 router = APIRouter(prefix="/api")
 
-STATUS_COLS = "fetched_at, source_time, estado, estado_vialidad, horario, horario_cancilleria"
+
+def public(status: dict) -> dict:
+    return {k: v for k, v in status.items() if k != "raw"}
 
 
 @router.get("/health")
@@ -16,26 +18,20 @@ def health():
 
 @router.get("/status")
 def latest_status():
-    with db.connect() as conn:
-        row = conn.execute(f"SELECT {STATUS_COLS} FROM pass_status ORDER BY fetched_at DESC LIMIT 1").fetchone()
-    if row is None:
-        raise HTTPException(404, "Sin datos todavía: correr `python -m app.collect`")
-    return dict(row)
+    latest = next(store.newest_first("status"), None)
+    if latest is None:
+        raise HTTPException(404, "Sin datos todavía: ver README (rama data)")
+    return public(latest)
 
 
 @router.get("/status/history")
-def status_history(limit: int = Query(168, le=5000)):
-    with db.connect() as conn:
-        rows = conn.execute(f"SELECT {STATUS_COLS} FROM pass_status ORDER BY fetched_at DESC LIMIT ?", (limit,)).fetchall()
-    return [dict(r) for r in rows]
+def status_history(limit: int = Query(168, ge=1, le=5000)):
+    return [public(s) for s in islice(store.newest_first("status"), limit)]
 
 
 @router.get("/forecast/{location}")
 def latest_forecast(location: str):
-    with db.connect() as conn:
-        row = conn.execute(
-            "SELECT fetched_at, raw FROM forecast WHERE location = ? ORDER BY fetched_at DESC LIMIT 1", (location,)
-        ).fetchone()
-    if row is None:
+    f = next((f for f in store.newest_first("forecast") if f["location"] == location), None)
+    if f is None:
         raise HTTPException(404, f"Sin pronóstico para {location}")
-    return {"fetched_at": row["fetched_at"], **json.loads(row["raw"])}
+    return {"fetched_at": f["fetched_at"], **f["data"]}

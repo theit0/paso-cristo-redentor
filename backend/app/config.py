@@ -1,8 +1,9 @@
 import os
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-DB_PATH = Path(os.getenv("PASO_DB_PATH", BASE_DIR / "data" / "paso.db"))
+REPO_DIR = Path(__file__).resolve().parents[2]
+# Worktree de la rama `data` (ver README). En Actions se pasa por variable de entorno.
+DATA_DIR = Path(os.getenv("PASO_DATA_DIR", REPO_DIR / "data"))
 
 # Ministerio de Seguridad: estado de los 156 pasos internacionales (JSON).
 PASSES_URL = "https://www.argentina.gob.ar/seguridad/pasosinternacionales/listado"

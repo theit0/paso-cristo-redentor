@@ -1,8 +1,8 @@
 # Tareas
 
 ## Fase 1 — Datos
-- [x] **1. Registrador**: estado oficial del paso (Ministerio de Seguridad) + pronóstico Open-Meteo (Las Cuevas y Portillo) → SQLite. API `/api/status`, `/api/forecast/{location}`. Front muestra el estado actual.
-- [ ] **2. Correr el registrador cada hora en la nube** (GitHub Actions cron o un VPS chico), para que no dependa de que la PC esté prendida. Es el dato más valioso: empezar cuanto antes.
+- [x] **1. Registrador**: estado oficial del paso (Ministerio de Seguridad) + pronóstico Open-Meteo (Las Cuevas y Portillo) → disco. API `/api/status`, `/api/forecast/{location}`. Front muestra el estado actual. *(SQLite reemplazado por JSONL en la tarea 2.)*
+- [x] **2. Registrador cada hora en la nube**: GitHub Actions → rama `data` (JSONL). Estado cada hora, pronóstico cada 6 h. Si una fuente falla, el job falla y GitHub avisa por mail.
 - [ ] **3. Histórico de cierres 2021–2026**: reconstruir desde comunicados y notas diarias (Sitio Andino, Los Andes, UPF) → `data/closures.csv` (inicio, fin, tipo: total/solo cargas, causa).
 - [ ] **4. Pronósticos históricos**: Open-Meteo Historical Forecast (2021+) y Previous Runs (anticipación 1–7 días, 2024+) para esas fechas. Entrenar con lo pronosticado, no con lo observado.
 

@@ -7,10 +7,24 @@ backend/    FastAPI + Python (registrador de datos, API, después ML)
   app/
     collectors/   fuentes: estado oficial del paso, pronóstico Open-Meteo
     api/          rutas HTTP
-    collect.py    registrador (correr cada hora)
+    store.py      lectura/escritura de los JSONL
+    collect.py    registrador
 frontend/   React + Vite + TypeScript
+data/       worktree de la rama `data` (no está en main)
 TASKS.md    hoja de ruta
 ```
+
+## Datos
+
+GitHub Actions ([collect.yml](.github/workflows/collect.yml)) corre el registrador cada hora (pronóstico cada 6 h)
+y commitea en la rama `data`. Para tenerlos local, una sola vez:
+
+```bash
+git fetch origin data && git worktree add data data
+```
+
+Después, para actualizar: `git -C data pull`. No correr el registrador local sobre `data/`
+(generaría conflictos con Actions); para probarlo usar otra carpeta: `PASO_DATA_DIR=/tmp/x python -m app.collect`.
 
 ## Correr
 
@@ -18,8 +32,7 @@ TASKS.md    hoja de ruta
 cd backend
 python -m venv .venv && .venv/Scripts/activate   # Linux/mac: source .venv/bin/activate
 pip install -r requirements.txt
-python -m app.collect          # guarda una foto del estado + pronóstico
-uvicorn app.main:app --reload  # API en :8000
+uvicorn app.main:app --reload  # API en :8000, lee ../data
 python -m pytest
 ```
 
