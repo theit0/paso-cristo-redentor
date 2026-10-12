@@ -13,7 +13,10 @@
   **Gana la regresión logística** (al boosting también). Brier invierno: **0,093 / 0,102 / 0,147** a 1/3/7 días vs Markov 0,130 / 0,191 / 0,206.
   Aciertos a 3 días: 86% (Markov 74%); en los días en que el estado cambia: **68%** (Markov 23%). Calibración buena en los extremos; algo subestimada en 30–60% a 1–3 días.
 - [x] ~~**7. Modelo B, reapertura (supervivencia)**~~: no hizo falta. El modelo único predice "¿sigue cerrado?" un 52% mejor que Markov. Retomar solo si la reapertura falla en producción.
-- [ ] **8. Endpoint `/api/predict?date=`**: combina A y B según el estado actual; devuelve probabilidad y confianza según la anticipación (0–24 h, 1–7 d, >10 d → climatología).
+- [x] **8. Endpoint `/api/predict?date=`** (sin fecha: próximos 8 días). Hoy → estado oficial; 1–7 días → modelo; más → climatología.
+  El modelo se exporta a `app/model.json` (`python -m app.ml.export`) y corre en Python puro: el servidor no carga pandas/sklearn (test lo garantiza).
+  Test de equivalencia entrenamiento ↔ producción. Datos en vivo con caché: estado (10 min), historial y clima (1 h).
+  **Reentrenar** cada tanto: actualizar `closures.csv` con el registrador, `download_weather`, `export`.
 
 ## Fase 3 — Producto
 - [ ] **9. Frontend**: selector de fecha, probabilidad, historial y pronóstico.

@@ -46,6 +46,23 @@ npm install
 npm run dev                    # :5173, /api va al backend por proxy
 ```
 
+## API
+
+- `GET /api/predict?date=AAAA-MM-DD` → probabilidad de cerrado/abierto, veredicto, confianza y fuente
+  (`estado_oficial` hoy, `modelo` a 1–7 días, `climatologia` más allá). Sin `date`: próximos 8 días.
+- `GET /api/status`, `/api/status/history`, `/api/forecast/{las_cuevas|portillo}`: datos del registrador.
+
+## Modelo
+
+```bash
+cd backend && pip install -r requirements-ml.txt
+python -m app.ml.evaluate > ../docs/evaluacion.md   # comparar modelos
+python -m app.ml.export                             # entrenar y exportar app/model.json
+```
+
+El servidor solo necesita `requirements.txt`: el modelo exportado corre en Python puro.
+En producción, `GITHUB_TOKEN` (solo lectura del repo) permite leer el historial de la rama `data`.
+
 ## Fuentes
 - Estado: `argentina.gob.ar/seguridad/pasosinternacionales/listado` (id 29).
 - Pronóstico: [Open-Meteo](https://open-meteo.com), gratis y sin API key.

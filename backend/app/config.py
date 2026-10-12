@@ -28,4 +28,8 @@ LOCATIONS = {
     "portillo": (-32.835, -70.130),    # lado chileno (Caracoles), ~2880 m
 }
 
-CORS_ORIGINS = os.getenv("PASO_CORS_ORIGINS", "http://localhost:5173").split(",")
+# En producción el historial del registrador se lee de la rama `data` vía API (token de solo lectura).
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+GITHUB_REPO = os.getenv("GITHUB_REPO", "theit0/paso-cristo-redentor")
+
+CORS_ORIGINS =os.getenv("PASO_CORS_ORIGINS", "http://localhost:5173").split(",")
