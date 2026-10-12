@@ -7,11 +7,13 @@ backend/    FastAPI + Python (registrador de datos, API, después ML)
   app/
     collectors/   fuentes: estado oficial del paso, pronóstico Open-Meteo
     api/          rutas HTTP
+    ml/           etiquetas, baselines, métricas y evaluación
     store.py      lectura/escritura de los JSONL
     collect.py    registrador
 frontend/   React + Vite + TypeScript
   scripts/      herramientas sueltas (p. ej. juntar titulares)
 datasets/   datos curados a mano: histórico de cierres (ver datasets/README.md)
+docs/       resultados de evaluación de modelos
 data/       worktree de la rama `data` (no está en main)
 TASKS.md    hoja de ruta
 ```

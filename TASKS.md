@@ -7,7 +7,8 @@
 - [x] **4. Clima histórico**: diario 2022→hoy en `datasets/weather_*.csv`. Observado (Historical Forecast) + pronosticado a 1–7 días (Previous Runs: JMA desde 2022, best_match desde 2024). Al predecir en vivo hay que pedir el mismo modelo (`jma_seamless`) que se usó para entrenar.
 
 ## Fase 2 — Modelo
-- [ ] **5. Baselines + métricas**: "mañana igual que hoy" y tasa histórica por fecha. Brier score, curva de confiabilidad.
+- [x] **5. Baselines + métricas** ([docs/baselines.md](docs/baselines.md), `python -m app.ml.evaluate`). Target: cerrado para autos (total o solo cargas). Validación dejando un año afuera.
+  El mejor es **Markov** (estado de hoy + mes). Vara a superar en invierno (Brier): **0,130 a 1 día · 0,191 a 3 · 0,206 a 7 · 0,229 a 14** (= climatología: a 2 semanas el estado de hoy ya no informa). "Mañana igual que hoy" pierde contra la climatología desde los 3 días.
 - [ ] **6. Modelo A, cierre**: P(cierre | hoy abierto), regresión logística → gradient boosting. Calibrar.
 - [ ] **7. Modelo B, reapertura**: supervivencia sobre días cerrado + nieve acumulada + ventana estable pronosticada.
 - [ ] **8. Endpoint `/api/predict?date=`**: combina A y B según el estado actual; devuelve probabilidad y confianza según la anticipación (0–24 h, 1–7 d, >10 d → climatología).
