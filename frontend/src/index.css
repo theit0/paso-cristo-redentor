@@ -1,0 +1,14 @@
+:root {
+  --bg: #f6f7f9; --fg: #1a1d21; --muted: #5f6b7a; --card: #fff;
+  --open: #1f8a4c; --closed: #c23a2b; --partial: #b7791f;
+  font-family: system-ui, sans-serif; color: var(--fg); background: var(--bg);
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #14171b; --fg: #e8eaed; --muted: #9aa5b1; --card: #1d2126; }
+}
+body { margin: 0; }
+main { max-width: 640px; margin: 0 auto; padding: 32px 16px; }
+.card { background: var(--card); border-radius: 12px; padding: 24px; }
+.estado { font-size: 2.5rem; font-weight: 700; margin: 8px 0; }
+.ABIERTO { color: var(--open); } .CERRADO { color: var(--closed); } .partial { color: var(--partial); }
+.muted { color: var(--muted); font-size: .9rem; }
