@@ -28,6 +28,16 @@ LOCATIONS = {
     "portillo": (-32.835, -70.130),    # lado chileno (Caracoles), ~2880 m
 }
 
+# Puntos de la ruta para el mapa (solo visualización; el modelo usa LOCATIONS).
+# ponytail: coordenadas a mano, verificadas contra la API de elevación de Open-Meteo; alcanzan para el mapa.
+ROUTE_POINTS = [
+    {"id": "uspallata", "nombre": "Uspallata", "lat": -32.593, "lon": -69.346, "altura": 1890},
+    {"id": "puente_del_inca", "nombre": "Puente del Inca", "lat": -32.825, "lon": -69.912, "altura": 2720},
+    {"id": "las_cuevas", "nombre": "Las Cuevas", "lat": -32.811, "lon": -70.050, "altura": 3150},
+    {"id": "portillo", "nombre": "Portillo", "lat": -32.835, "lon": -70.130, "altura": 2880},
+    {"id": "guardia_vieja", "nombre": "Guardia Vieja", "lat": -32.905, "lon": -70.280, "altura": 1600},
+]
+
 # En producción el historial del registrador se lee de la rama `data` vía API (token de solo lectura).
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_REPO = os.getenv("GITHUB_REPO", "theit0/paso-cristo-redentor")

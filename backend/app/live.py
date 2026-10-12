@@ -122,6 +122,33 @@ def _open_meteo(lat: float, lon: float, **params) -> dict:
     return r.json()["hourly"]
 
 
+@ttl_cache(1800)
+def route_weather() -> list[dict]:
+    """Clima actual + 8 días en cada punto de la ruta, para el mapa. Un solo pedido con varias coordenadas."""
+    pts = config.ROUTE_POINTS
+    r = HTTP.get(config.OPEN_METEO_URL, params={
+        "latitude": ",".join(str(p["lat"]) for p in pts),
+        "longitude": ",".join(str(p["lon"]) for p in pts),
+        "current": "temperature_2m,wind_speed_10m,wind_gusts_10m,snowfall,weather_code",
+        "daily": "weather_code,temperature_2m_max,temperature_2m_min,snowfall_sum,precipitation_sum,wind_gusts_10m_max",
+        "forecast_days": 8, "timezone": "America/Argentina/Mendoza",
+    })
+    r.raise_for_status()
+    out = []
+    for p, w in zip(pts, r.json()):
+        d, c = w["daily"], w["current"]
+        out.append({**p, "actual": {
+            "temp": c["temperature_2m"], "viento": c["wind_speed_10m"], "rafagas": c["wind_gusts_10m"],
+            "nevando": (c["snowfall"] or 0) > 0, "codigo": c["weather_code"],
+        }, "dias": [{
+            "fecha": d["time"][i], "codigo": d["weather_code"][i],
+            "temp_min": d["temperature_2m_min"][i], "temp_max": d["temperature_2m_max"][i],
+            "nieve_cm": d["snowfall_sum"][i], "precip_mm": d["precipitation_sum"][i],
+            "rafagas": d["wind_gusts_10m_max"][i],
+        } for i in range(len(d["time"]))]})
+    return out
+
+
 @ttl_cache(3600)
 def weather() -> tuple[dict[date, dict], dict[date, dict]]:
     """(observado últimos 61 días con best_match, pronóstico JMA a 7 días) — mismas fuentes que el entrenamiento."""

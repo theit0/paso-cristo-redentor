@@ -51,16 +51,35 @@ def predict_one(target: date, today: date, official: dict, status: dict, obs: di
     }
 
 
+FIRST_YEAR = 2022  # desde ahí hay histórico curado
+
+
 @router.get("/history")
-def history(days: int = Query(60, ge=1, le=1000)):
-    """Estado por día (abierto / solo_cargas / total): histórico curado + registrador."""
+def history(days: int = Query(60, ge=1, le=1000), year: int | None = Query(None, ge=FIRST_YEAR)):
+    """Estado por día (abierto / solo_cargas / total): histórico curado + registrador.
+    Con `year`: del 1/1 de ese año hasta ayer (o el 31/12)."""
     today = live.today()
     try:
         status = live.status_history()
     except httpx.HTTPError as e:
         raise HTTPException(503, f"No se pudo leer el historial: {e}") from e
-    dates = [today - timedelta(days=k) for k in range(days, 0, -1)]
+    if year is not None:
+        if year > today.year:
+            raise HTTPException(422, f"Hay datos de {FIRST_YEAR} a {today.year}")
+        start, end = date(year, 1, 1), min(date(year, 12, 31), today - timedelta(days=1))
+        dates = [start + timedelta(days=k) for k in range((end - start).days + 1)]
+    else:
+        dates = [today - timedelta(days=k) for k in range(days, 0, -1)]
     return [{"fecha": d.isoformat(), "estado": status.get(d, "abierto")} for d in dates]
+
+
+@router.get("/weather")
+def route_weather():
+    """Clima actual y 8 días en puntos de la ruta, para el mapa."""
+    try:
+        return live.route_weather()
+    except httpx.HTTPError as e:
+        raise HTTPException(503, f"No se pudo obtener el clima: {e}") from e
 
 
 @router.get("/predict")

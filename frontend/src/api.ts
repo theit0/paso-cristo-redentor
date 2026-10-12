@@ -25,6 +25,26 @@ export type PredictResponse = {
 
 export type DiaHistorial = { fecha: string; estado: 'abierto' | 'solo_cargas' | 'total' }
 
+export type DiaClima = {
+  fecha: string
+  codigo: number
+  temp_min: number
+  temp_max: number
+  nieve_cm: number
+  precip_mm: number
+  rafagas: number
+}
+
+export type PuntoClima = {
+  id: string
+  nombre: string
+  lat: number
+  lon: number
+  altura: number
+  actual: { temp: number; viento: number; rafagas: number; nevando: boolean; codigo: number }
+  dias: DiaClima[]
+}
+
 async function get<T>(url: string): Promise<T> {
   const r = await fetch(url)
   if (!r.ok) throw new Error((await r.json().catch(() => null))?.detail ?? `HTTP ${r.status}`)
@@ -33,4 +53,5 @@ async function get<T>(url: string): Promise<T> {
 
 export const fetchPredict = (date?: string) =>
   get<PredictResponse>(date ? `/api/predict?date=${date}` : '/api/predict')
-export const fetchHistory = (days = 60) => get<DiaHistorial[]>(`/api/history?days=${days}`)
+export const fetchYear = (year: number) => get<DiaHistorial[]>(`/api/history?year=${year}`)
+export const fetchWeather = () => get<PuntoClima[]>('/api/weather')

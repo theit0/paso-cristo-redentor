@@ -20,4 +20,5 @@
 
 ## Fase 3 — Producto
 - [x] **9. Frontend**: estado actual, tarjetas de los próximos 8 días (veredicto, probabilidad, nieve prevista, confianza), consulta de cualquier fecha hasta 1 año, franja de los últimos 60 días (`/api/history`). Sin dependencias extra; claro/oscuro; responsive.
+  **Rediseño (dirección B):** estado como señal vial, tarjetas que se llenan con la chance de abierto, mapa topográfico (Leaflet + OpenTopoMap) con 5 puntos de la ruta y su nieve prevista (`/api/weather`), y 12 calendarios mensuales por año 2022–2026 con resumen (`/api/history?year=`).
 - [ ] **10. Deploy** (back + front + registrador).
