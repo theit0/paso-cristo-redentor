@@ -7,12 +7,21 @@ Verde abierto, rojo cerrado. Al pasar el mouse por un cuadrado se ve la fecha y,
 ## En pocas palabras
 
 > Juntamos cinco inviernos de historia del paso: qué días estuvo cerrado y qué clima se pronosticaba en ese momento.
-> Con eso, la app aprendió qué combinaciones suelen terminar en cierre: mucha nieve o lluvia en camino, frío fuerte,
-> el paso que ya viene cerrado hace días, la nieve acumulada de la última semana.
+> Con eso, la app aprendió qué combinaciones suelen terminar en cierre.
 >
-> Todos los días mira el pronóstico del tiempo para la cordillera y el estado oficial de hoy, y calcula para cada uno
-> de los próximos 7 días qué chance hay de que esté cerrado. Si esa chance llega al 35% lo pinta de rojo: preferimos
-> avisar de más antes que decirte "abierto" y que llegues a la frontera y esté cerrado.
+> Para cada uno de los próximos 7 días se fija en:
+>
+> - **Cómo está hoy:** si está abierto o cerrado, hace cuántos días que está así, y si solo pasan camiones.
+> - **La nieve que ya cayó:** en los últimos 3, 7 y 14 días, y cuánta hay acumulada en el suelo.
+> - **Hace cuánto no nieva fuerte.**
+> - **El frío de ayer.**
+> - **El pronóstico para ese día:** nieve, lluvia, viento y temperaturas mínima y máxima.
+> - **La nieve que viene en camino:** cuánta se espera en total de hoy hasta ese día, y la nevada más fuerte.
+> - **La época del año.**
+> - **Cuántos días faltan:** cuanto más lejos, menos seguro.
+>
+> Con todo eso calcula qué chance hay de que esté cerrado. Si llega al 35% lo pinta de rojo: preferimos avisar
+> de más antes que decirte "abierto" y que llegues a la frontera y esté cerrado.
 >
 > Probándola con inviernos que no conocía, acertó más de 8 de cada 10 días. Más allá de una semana no hay pronóstico
 > del tiempo confiable, por eso esos días quedan en gris. Es una ayuda para planificar: antes de salir, siempre
