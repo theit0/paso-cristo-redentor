@@ -35,13 +35,24 @@ export default function App() {
         <div className="w-full max-w-4xl space-y-1.5">
           {months.map((dias, m) => (
             <div key={m} className="grid grid-cols-31 gap-[2px] sm:gap-1">
-              {dias.map(d => (
-                <span
-                  key={d.fecha}
-                  title={tooltip(d.fecha)}
-                  className={`aspect-square rounded-[2px] sm:rounded-sm ${color(d.cerrado, d.fecha < data.hoy)}`}
-                />
-              ))}
+              {dias.map(d => {
+                const day = Number(d.fecha.slice(8, 10))
+                // cerca de los bordes, el tooltip se alinea hacia adentro para no salirse de la pantalla
+                const align = day <= 4 ? 'left-0' : day >= 28 ? 'right-0' : 'left-1/2 -translate-x-1/2'
+                return (
+                  <span
+                    key={d.fecha}
+                    aria-label={tooltip(d.fecha)}
+                    className={`group relative aspect-square rounded-[2px] sm:rounded-sm ${color(d.cerrado, d.fecha < data.hoy)}`}
+                  >
+                    <span
+                      className={`pointer-events-none absolute bottom-full z-10 mb-1.5 whitespace-nowrap rounded-md bg-neutral-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 ${align}`}
+                    >
+                      {tooltip(d.fecha)}
+                    </span>
+                  </span>
+                )
+              })}
             </div>
           ))}
         </div>
