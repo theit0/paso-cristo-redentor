@@ -1,6 +1,7 @@
 # Paso Cristo Redentor
 
-Predice si el paso a Chile (Cristo Redentor / Los Libertadores) va a estar abierto en los próximos días, con su probabilidad.
+Muestra el año entero del paso a Chile (Cristo Redentor / Los Libertadores), un cuadrado por día:
+los días pasados en tono claro (lo que pasó) y de hoy en adelante en tono pleno (la predicción). Verde abierto, rojo cerrado.
 
 ## Cómo funciona
 
@@ -27,11 +28,15 @@ Predice si el paso a Chile (Cristo Redentor / Los Libertadores) va a estar abier
 - Se entrena en la PC (pandas + scikit-learn) y se exporta a [app/model.json](backend/app/model.json) (5 KB).
   El servidor lo calcula en Python puro, así consume poco (~60 MB).
 
-### 3. En cada consulta
+### 3. Cómo se pinta cada día
 
-- **Hoy** → estado oficial. **1 a 7 días** → modelo. **Más de 7** → tasa de cierre de otros años para esa fecha.
-- Abierto si la probabilidad de abierto es ≥ 50%; entre 35% y 65% se marca como ajustado.
-- Cada día muestra los 3 factores que más lo empujan a abrir o cerrar (exactos, porque el modelo es lineal).
+- **Pasado:** estado real (histórico curado + registrador). "Solo camiones" cuenta como cerrado.
+- **Hoy:** estado oficial en vivo.
+- **1 a 7 días:** modelo con el pronóstico del tiempo.
+- **Más de 7 días:** tasa de cierre de otros años para esa fecha (no es un pronóstico: marca la época de riesgo).
+- **Criterio:** rojo si la probabilidad de cierre es **≥ 35%** (`UMBRAL_CERRADO` en
+  [routes.py](backend/app/api/routes.py)). Con el mismo % de aciertos que usar 50%, detecta 73% de los cierres en vez
+  de 63%: un verde equivocado (viajar y encontrarlo cerrado) cuesta más que un rojo equivocado.
 - Los datos externos se cachean: estado y parte 10 min, clima e historial 1 h.
 
 ## Estructura
@@ -40,7 +45,7 @@ Predice si el paso a Chile (Cristo Redentor / Los Libertadores) va a estar abier
 backend/app/
   api/routes.py   endpoints
   live.py         datos en vivo (estado, parte, clima, historial)
-  predict.py      features + modelo en Python puro
+  predict.py      modelo en Python puro
   collectors/     lectura de cada fuente
   collect.py      registrador
   ml/             entrenamiento y evaluación (pandas, scikit-learn)
@@ -78,13 +83,12 @@ Conviene hacerlo antes de cada invierno, sumando a `closures.csv` los cierres nu
 
 ## API
 
-- `GET /api/predict` → próximos 8 días; `?date=AAAA-MM-DD` → una fecha (hasta 1 año).
-  Incluye probabilidad, confianza, clima, factores y contexto (nieve reciente, días en el estado actual).
-- `GET /api/status` → estado oficial en vivo.
+- `GET /api/year` → todos los días del año en curso: `{hoy, dias: [{fecha, cerrado}]}`.
 
 ## Limitaciones
 
 - El histórico sale de la prensa: puede faltar algún cierre corto.
 - Hay 5 inviernos de datos; 2026 fue récord.
 - GitHub ejecuta el registrador con demoras (a veces pocas veces por día).
+- Dos colores esconden cuán segura es cada predicción (un 36% y un 99% se ven igual).
 - Es una estimación: antes de viajar, consultar las fuentes oficiales.

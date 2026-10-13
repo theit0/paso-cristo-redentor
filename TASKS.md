@@ -13,11 +13,11 @@
   **Gana la regresión logística** (al boosting también). Brier invierno: **0,093 / 0,102 / 0,147** a 1/3/7 días vs Markov 0,130 / 0,191 / 0,206.
   Aciertos a 3 días: 86% (Markov 74%); en los días en que el estado cambia: **68%** (Markov 23%). Calibración buena en los extremos; algo subestimada en 30–60% a 1–3 días.
 - [x] ~~**7. Modelo B, reapertura (supervivencia)**~~: no hizo falta. El modelo único predice "¿sigue cerrado?" un 52% mejor que Markov. Retomar solo si la reapertura falla en producción.
-- [x] **8. Endpoint `/api/predict?date=`** (sin fecha: próximos 8 días). Hoy → estado oficial; 1–7 días → modelo; más → climatología.
+- [x] **8. Endpoint** (hoy `/api/year`): hoy → estado oficial; 1–7 días → modelo; más → climatología.
   El modelo se exporta a `app/model.json` (`python -m app.ml.export`) y corre en Python puro: el servidor no carga pandas/sklearn (test lo garantiza).
   Test de equivalencia entrenamiento ↔ producción. Datos en vivo con caché: estado (10 min), historial y clima (1 h).
   **Reentrenar** cada tanto: actualizar `closures.csv` con el registrador, `download_weather`, `export`.
 
 ## Fase 3 — Producto
-- [x] **9. Frontend** (React + Tailwind; shadcn solo para el calendario): tablero oscuro con estado en vivo, resumen de la semana (días probables de abierto, mejor día), curva de probabilidad a 8 días con clima por día, detalle del día con medidor, factores del modelo y punto de partida, contexto (nieve reciente, en el suelo, días en el estado actual) y consulta de otra fecha. Antes se probaron una versión con mapa/calendarios y una mínima de una sola fecha.
+- [x] **9. Frontend**: un cuadrado por día del año, verde/rojo; pasado en tono claro (real), hoy y futuro en tono pleno (predicción). Rojo si P(cerrado) ≥ 35%. Tooltip con la fecha. (Antes se probaron un tablero con mapa, uno con 8 días y factores, y uno de una sola fecha.)
 - [ ] **10. Deploy** (back + front + registrador).

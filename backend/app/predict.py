@@ -86,36 +86,5 @@ def probability(row: dict) -> float:
     return 1 / (1 + math.exp(-z))
 
 
-# Nombre legible de cada feature; las dos de estacionalidad se suman en una sola.
-LABELS = {
-    "closed_t": "Estado de hoy", "solo_cargas_t": "Hoy solo pasan camiones", "dias_en_estado": "Días en el estado actual",
-    "nieve_3d": "Nieve de los últimos 3 días", "nieve_7d": "Nieve de la última semana",
-    "nieve_14d": "Nieve de las últimas 2 semanas", "nieve_suelo": "Nieve acumulada en el suelo",
-    "dias_sin_nevada": "Días sin nevadas fuertes", "temp_min_ayer": "Temperatura mínima de ayer",
-    "fc_nieve": "Nieve prevista ese día", "fc_precip": "Precipitación prevista", "fc_viento": "Viento previsto",
-    "fc_temp_min": "Mínima prevista", "fc_temp_max": "Máxima prevista", "fc_nieve_acum": "Nieve prevista hasta ese día",
-    "fc_nieve_max_dia": "Nevada más fuerte prevista", "h": "Días de anticipación",
-    "estacion_sin": "Época del año", "estacion_cos": "Época del año",
-    "x_cerrado_precip": "Precipitación con el paso cerrado", "x_cerrado_nieve_acum": "Nieve prevista con el paso cerrado",
-    "x_cerrado_dias": "Días que lleva cerrado", "x_h_precip": "Precipitación según anticipación",
-}
-
-
-def base_probability() -> float:
-    """P(cerrado) de un día con todas las features en su promedio: el punto de partida de los factores."""
-    return 1 / (1 + math.exp(-model()["intercepto"]))
-
-
-def top_factors(row: dict, n: int = 3) -> list[dict]:
-    """Lo que más empuja la predicción, en log-odds: positivo → hacia cerrado, negativo → hacia abierto."""
-    m = model()
-    contrib: dict[str, float] = {}
-    for name, med, mu, sd, w in zip(m["features"], m["medianas"], m["media"], m["escala"], m["coef"]):
-        x = row[name] if row[name] is not None else med
-        contrib[LABELS[name]] = contrib.get(LABELS[name], 0.0) + w * (x - mu) / sd
-    top = sorted(contrib.items(), key=lambda kv: abs(kv[1]), reverse=True)[:n]
-    return [{"factor": k, "empuja_a": "cerrado" if v > 0 else "abierto", "peso": round(abs(v), 2)} for k, v in top]
-
-
 def climatology(target: date) -> float:
     return model()["climatologia"][target.timetuple().tm_yday - 1]
