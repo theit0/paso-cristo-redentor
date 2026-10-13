@@ -2,7 +2,21 @@
 
 Muestra el año entero del paso a Chile (Cristo Redentor / Los Libertadores), un cuadrado por día:
 los días pasados en tono claro (lo que pasó), hoy y los 7 siguientes en tono pleno (la predicción) y el resto en gris.
-Verde abierto, rojo cerrado.
+Verde abierto, rojo cerrado. Al pasar el mouse por un cuadrado se ve la fecha y, en los días predichos, el % de abierto y cerrado.
+
+## En pocas palabras
+
+> Juntamos cinco inviernos de historia del paso: qué días estuvo cerrado y qué clima se pronosticaba en ese momento.
+> Con eso, la app aprendió qué combinaciones suelen terminar en cierre: mucha nieve o lluvia en camino, frío fuerte,
+> el paso que ya viene cerrado hace días, la nieve acumulada de la última semana.
+>
+> Todos los días mira el pronóstico del tiempo para la cordillera y el estado oficial de hoy, y calcula para cada uno
+> de los próximos 7 días qué chance hay de que esté cerrado. Si esa chance llega al 35% lo pinta de rojo: preferimos
+> avisar de más antes que decirte "abierto" y que llegues a la frontera y esté cerrado.
+>
+> Probándola con inviernos que no conocía, acertó más de 8 de cada 10 días. Más allá de una semana no hay pronóstico
+> del tiempo confiable, por eso esos días quedan en gris. Es una ayuda para planificar: antes de salir, siempre
+> conviene confirmar con las fuentes oficiales.
 
 ## Cómo funciona
 
@@ -85,7 +99,8 @@ Conviene hacerlo antes de cada invierno, sumando a `closures.csv` los cierres nu
 
 ## API
 
-- `GET /api/year` → todos los días del año en curso: `{hoy, dias: [{fecha, cerrado}]}` (`cerrado: null` más allá de 7 días).
+- `GET /api/year` → todos los días del año en curso: `{hoy, dias: [{fecha, cerrado, prob_cerrado}]}`
+  (`prob_cerrado` solo en los 7 días predichos; `cerrado: null` más allá).
 
 ## Limitaciones
 

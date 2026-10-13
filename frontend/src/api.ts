@@ -1,4 +1,5 @@
-export type Dia = { fecha: string; cerrado: boolean | null } // null: más de 7 días, sin pronóstico
+// cerrado null: más de 7 días, sin pronóstico. prob_cerrado: solo en los días predichos (1–7).
+export type Dia = { fecha: string; cerrado: boolean | null; prob_cerrado: number | null }
 export type Anio = { hoy: string; dias: Dia[] }
 
 export async function fetchYear(): Promise<Anio> {

@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react'
-import { fetchYear, type Anio } from './api'
+import { fetchYear, type Anio, type Dia } from './api'
 
 // "2026-10-05" → "Lunes 05/10/2026" (se arma a mano para no depender de la zona horaria)
 function tooltip(iso: string) {
   const [y, m, d] = iso.split('-')
   const dia = new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString('es-AR', { weekday: 'long' })
   return `${dia[0].toUpperCase()}${dia.slice(1)} ${d}/${m}/${y}`
+}
+
+// Segunda línea del tooltip: porcentajes en los días predichos, el estado real en pasado/hoy.
+function status(d: Dia) {
+  if (d.cerrado === null) return 'Sin pronóstico'
+  if (d.prob_cerrado === null) return d.cerrado ? 'Cerrado' : 'Abierto'
+  const abierto = Math.round((1 - d.prob_cerrado) * 100)
+  return `Abierto ${abierto}% · Cerrado ${100 - abierto}%` // complementarios: siempre suman 100
 }
 
 // Pasado (real) en tono claro; hoy y próximos 7 días (predicción) en tono pleno; más adelante, gris.
@@ -42,13 +50,14 @@ export default function App() {
                 return (
                   <span
                     key={d.fecha}
-                    aria-label={tooltip(d.fecha)}
+                    aria-label={`${tooltip(d.fecha)}: ${status(d)}`}
                     className={`group relative aspect-square rounded-[2px] sm:rounded-sm ${color(d.cerrado, d.fecha < data.hoy)}`}
                   >
                     <span
                       className={`pointer-events-none absolute bottom-full z-10 mb-1.5 whitespace-nowrap rounded-md bg-neutral-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 ${align}`}
                     >
                       {tooltip(d.fecha)}
+                      <span className="block text-neutral-300">{status(d)}</span>
                     </span>
                   </span>
                 )

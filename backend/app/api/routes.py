@@ -36,12 +36,14 @@ def year():
 
     days, d = [], date(today.year, 1, 1)
     while d.year == today.year:
+        prob = None  # solo los días predichos tienen probabilidad; pasado y hoy son dato real
         if d <= today:
             cerrado = status.get(d, "abierto") != "abierto"
         elif (d - today).days <= predict.MAX_HORIZON:
-            cerrado = prob_closed(d, today, status, obs, fc) >= UMBRAL_CERRADO
+            prob = prob_closed(d, today, status, obs, fc)
+            cerrado = prob >= UMBRAL_CERRADO
         else:
             cerrado = None
-        days.append({"fecha": d.isoformat(), "cerrado": cerrado})
+        days.append({"fecha": d.isoformat(), "cerrado": cerrado, "prob_cerrado": None if prob is None else round(prob, 3)})
         d += timedelta(days=1)
     return {"hoy": today.isoformat(), "dias": days}
