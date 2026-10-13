@@ -9,6 +9,7 @@ from functools import wraps
 import httpx
 
 from app import config, store
+from app.collectors import mendoza_report as mza
 from app.collectors import pass_status
 
 # ponytail: Mendoza es UTC-3 fijo (sin horario de verano desde 2009); zoneinfo en Windows exige tzdata.
@@ -40,9 +41,28 @@ def official_status() -> dict:
 
 
 def to_status(estado: str | None) -> str:
-    # ponytail: el aviso "solo cargas" del feed quedó desactualizado al menos una vez (12/10/2026),
-    # así que solo se usa ABIERTO/CERRADO. Revisar con el historial del registrador.
+    # El aviso "solo cargas" del feed del Ministerio quedó días desactualizado (12-13/10/2026):
+    # de ese feed solo se usa ABIERTO/CERRADO; el detalle sale del parte de Mendoza.
     return "total" if estado == "CERRADO" else "abierto"
+
+
+@ttl_cache(600)
+def mendoza_report() -> dict | None:
+    """Parte diario del Gobierno de Mendoza, con `es_de_hoy`. Fuente secundaria: si falla, None."""
+    try:
+        r = mza.fetch(HTTP)
+    except (httpx.HTTPError, ValueError, KeyError):
+        return None
+    return {**r, "es_de_hoy": r["publicado"][:10] == today().isoformat()}
+
+
+def current_status(official: dict, report: dict | None) -> str:
+    """Abierto/cerrado lo decide el Ministerio (su estado está al día, en vivo);
+    si está abierto, el parte de Mendoza del día dice si es solo para camiones."""
+    ministry = to_status(official.get("estado"))
+    if ministry == "abierto" and report and report["es_de_hoy"] and report["estado"] == "solo_cargas":
+        return "solo_cargas"
+    return ministry
 
 
 def _collected_records() -> list[dict]:

@@ -46,7 +46,7 @@ def predict_one(target: date, today: date, official: dict, status: dict, obs: di
     h = (target - today).days
     factores = []
     if h == 0:  # hoy: manda el estado oficial
-        p, fuente, confianza = (1.0 if live.to_status(official["estado"]) != "abierto" else 0.0), "estado_oficial", "alta"
+        p, fuente, confianza = (1.0 if status[today] != "abierto" else 0.0), "estado_oficial", "alta"
     elif h <= predict.MAX_HORIZON:
         row = predict.features_row(status, obs, fc, today, h)
         p, factores = predict.probability(row), predict.top_factors(row)
@@ -91,14 +91,19 @@ def predict_endpoint(date_: date | None = Query(None, alias="date", description=
         raise HTTPException(422, "La fecha tiene que estar entre hoy y dentro de un año")
     try:
         official = live.official_status()
-        status = {**live.status_history(), today: live.to_status(official["estado"])}
+        report = live.mendoza_report()
+        status = {**live.status_history(), today: live.current_status(official, report)}
         obs, fc = live.weather()
     except httpx.HTTPError as e:
         raise HTTPException(503, f"No se pudo obtener datos en vivo: {e}") from e
     targets = [date_] if date_ else [today + timedelta(days=k) for k in range(8)]
     return {
         "hoy": today.isoformat(),
-        "estado_actual": {k: official[k] for k in ("estado", "estado_vialidad", "horario", "horario_cancilleria", "source_time")},
+        "estado_actual": {
+            **{k: official[k] for k in ("estado", "estado_vialidad", "horario", "horario_cancilleria", "source_time")},
+            "estado_hoy": status[today],  # abierto / solo_cargas / total, combinando ambas fuentes
+            "parte_mendoza": report,
+        },
         "modelo": predict.model()["version"],
         "contexto": context(today, status, obs, fc),
         "predicciones": [predict_one(t, today, official, status, obs, fc) for t in targets],

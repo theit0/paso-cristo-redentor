@@ -31,6 +31,15 @@ export type Contexto = {
   temp_min_ayer: number | null
 }
 
+export type ParteMendoza = {
+  publicado: string
+  link: string
+  aviso: string | null
+  estado: 'abierto' | 'solo_cargas' | 'total' | null
+  temperaturas: Record<string, number>
+  es_de_hoy: boolean
+}
+
 export type Pronostico = {
   hoy: string
   estado_actual: {
@@ -39,6 +48,8 @@ export type Pronostico = {
     horario: string | null
     horario_cancilleria: string | null
     source_time: string | null
+    estado_hoy: 'abierto' | 'solo_cargas' | 'total'
+    parte_mendoza: ParteMendoza | null
   }
   modelo: string
   contexto: Contexto

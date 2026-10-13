@@ -31,13 +31,9 @@ jobs:
         working-directory: backend
         env:
           PASO_DATA_DIR: ${{ github.workspace }}/data
-        # ponytail: pronóstico cada 6 h; el resto se recupera de la API Previous Runs de Open-Meteo.
-        run: |
-          kinds=status
-          if [ $(( $(date -u +%-H) % 6 )) -eq 0 ] || [ "${{ github.event_name }}" = workflow_dispatch ]; then
-            kinds="status forecast"
-          fi
-          python -m app.collect $kinds
+        # Todo en cada corrida: GitHub ejecuta el cron con demoras y a veces solo ~3 veces por día,
+        # así que condicionar por hora hacía que el pronóstico no se guardara nunca.
+        run: python -m app.collect status mendoza forecast
 
       - name: Guardar en rama data
         if: always() # guarda lo que se haya obtenido aunque una fuente falle

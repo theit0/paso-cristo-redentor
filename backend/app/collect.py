@@ -1,6 +1,6 @@
 """Registrador: guarda una foto del estado del paso y/o del pronóstico.
 
-Uso: python -m app.collect [status] [forecast]   (sin argumentos: ambos)
+Uso: python -m app.collect [status] [mendoza] [forecast]   (sin argumentos: todos)
 Sale con código 1 si alguna fuente falló, después de guardar las que funcionaron.
 """
 import argparse
@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 import httpx
 
 from app import store
-from app.collectors import forecast, pass_status
+from app.collectors import forecast, mendoza_report, pass_status
 
 log = logging.getLogger("collect")
 
@@ -22,13 +22,19 @@ def collect_status(client: httpx.Client, now: str) -> None:
     log.info("estado: %s / %s", s["estado"], s["estado_vialidad"])
 
 
+def collect_mendoza(client: httpx.Client, now: str) -> None:
+    r = mendoza_report.fetch(client)
+    store.append("mendoza", {"fetched_at": now, **r})
+    log.info("parte Mendoza (%s): %s", r["publicado"], r["aviso"])
+
+
 def collect_forecast(client: httpx.Client, now: str) -> None:
     for loc, data in forecast.fetch(client).items():
         store.append("forecast", {"fetched_at": now, "location": loc, "data": data})
     log.info("pronóstico guardado")
 
 
-COLLECTORS = {"status": collect_status, "forecast": collect_forecast}
+COLLECTORS = {"status": collect_status, "mendoza": collect_mendoza, "forecast": collect_forecast}
 
 
 def run(kinds: list[str]) -> bool:

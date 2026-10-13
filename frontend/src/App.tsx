@@ -15,31 +15,60 @@ const note = (s: string | null) => s?.match(/"(.*)"/)?.[1] ?? s
 
 const panel = 'rounded-3xl border border-white/10 bg-white/[0.04] p-5'
 
+const NOW = {
+  abierto: { label: 'Abierto', text: 'text-emerald-400', dot: 'bg-emerald-400', glow: 'bg-emerald-500/25' },
+  solo_cargas: { label: 'Solo camiones', text: 'text-amber-300', dot: 'bg-amber-300', glow: 'bg-amber-400/25' },
+  total: { label: 'Cerrado', text: 'text-rose-400', dot: 'bg-rose-400', glow: 'bg-rose-500/25' },
+}
+
 function Hero({ data }: { data: Pronostico }) {
   const e = data.estado_actual
-  const open = e.estado === 'ABIERTO'
+  const s = NOW[e.estado_hoy]
+  const parte = e.parte_mendoza
+  const fresh = parte?.es_de_hoy && parte.aviso
   const week = data.predicciones.slice(1)
   const openDays = week.filter(d => isOpen(d.prob_abierto)).length
   const best = week.reduce((a, b) => (b.prob_abierto > a.prob_abierto ? b : a))
   return (
     <section className="grid gap-4 md:grid-cols-[1.3fr_1fr]">
       <div className={`${panel} relative overflow-hidden`}>
-        <div className={`absolute -right-16 -top-16 size-56 rounded-full blur-3xl ${open ? 'bg-emerald-500/25' : 'bg-rose-500/25'}`} />
+        <div className={`absolute -right-16 -top-16 size-56 rounded-full blur-3xl ${s.glow}`} />
         <div className="relative flex items-center gap-2 text-xs text-white/60">
           <span className="relative flex size-2.5">
-            <span className={`absolute inline-flex size-full animate-ping rounded-full opacity-60 ${open ? 'bg-emerald-400' : 'bg-rose-400'}`} />
-            <span className={`relative inline-flex size-2.5 rounded-full ${open ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+            <span className={`absolute inline-flex size-full animate-ping rounded-full opacity-60 ${s.dot}`} />
+            <span className={`relative inline-flex size-2.5 rounded-full ${s.dot}`} />
           </span>
-          En vivo · estado oficial
+          En vivo · Ministerio de Seguridad {e.source_time?.slice(11, 16) ?? '—'} h
         </div>
-        <p className={`relative mt-2 text-6xl font-semibold tracking-tight md:text-7xl ${open ? 'text-emerald-400' : 'text-rose-400'}`}>
-          {open ? 'Abierto' : 'Cerrado'}
-        </p>
-        <p className="relative mt-2 text-sm text-white/70">Aviso oficial: {note(e.horario_cancilleria) ?? note(e.horario)}</p>
-        <p className="relative mt-1 flex items-center gap-1.5 text-xs text-white/40">
-          <Clock className="size-3.5" />
-          Actualizado {e.source_time?.slice(11, 16) ?? '—'} h · {note(e.horario)}
-        </p>
+        <p className={`relative mt-2 text-6xl font-semibold tracking-tight md:text-7xl ${s.text}`}>{s.label}</p>
+        {fresh ? (
+          <p className="relative mt-2 text-sm text-white/80">
+            {parte.aviso}{' '}
+            <a href={parte.link} target="_blank" rel="noreferrer" className="text-white/40 underline-offset-2 hover:underline">
+              Parte del Gobierno de Mendoza · {parte.publicado.slice(11, 16)} h
+            </a>
+          </p>
+        ) : (
+          <p className="relative mt-2 text-sm text-white/70">
+            {note(e.horario_cancilleria) ?? note(e.horario)}{' '}
+            <span className="text-white/40">· aviso del Ministerio, puede estar desactualizado</span>
+          </p>
+        )}
+        {!fresh && note(e.horario) && (
+          <p className="relative mt-1 flex items-center gap-1.5 text-xs text-white/40">
+            <Clock className="size-3.5" />
+            {note(e.horario)}
+          </p>
+        )}
+        {parte && Object.keys(parte.temperaturas).length > 0 && (
+          <div className="relative mt-4 flex flex-wrap gap-2">
+            {Object.entries(parte.temperaturas).map(([place, t]) => (
+              <span key={place} className="rounded-full bg-white/5 px-2.5 py-1 text-[11px] text-white/60">
+                {place} <b className="tabular-nums text-sky-200">{Math.round(t)}°</b>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className={`${panel} grid grid-cols-2 gap-4`}>
@@ -181,7 +210,7 @@ export default function App() {
               <DayDetail d={data.predicciones[selected]} />
             </section>
 
-            <ContextTiles c={data.contexto} open={data.estado_actual.estado === 'ABIERTO'} />
+            <ContextTiles c={data.contexto} open={data.estado_actual.estado_hoy === 'abierto'} />
 
             <footer className="pt-4 text-[11px] leading-relaxed text-white/35">
               Estimación, no información oficial. Antes de viajar consultá{' '}
