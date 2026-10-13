@@ -207,7 +207,7 @@ Después, para actualizar: `git -C data pull`. No correr el registrador local so
 cd backend
 python -m venv .venv && .venv/Scripts/activate   # Linux/mac: source .venv/bin/activate
 pip install -r requirements-ml.txt   # servidor + pytest + lo necesario para entrenar
-uvicorn app.main:app --reload  # API en :8000, lee ../data
+uvicorn app.main:app --reload --port 8010  # API en :8010 (el 8000 suele estar ocupado), lee ../data
 python -m pytest
 ```
 
