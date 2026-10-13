@@ -23,3 +23,4 @@ def test_year_past_is_real_and_future_uses_threshold(monkeypatch):
     assert not by["2026-07-21"]
     assert not by["2026-10-13"]  # hoy: estado oficial
     assert by["2026-10-14"] and not by["2026-10-15"]
+    assert by["2026-10-20"] is not None and by["2026-10-21"] is None  # más de 7 días: sin dato

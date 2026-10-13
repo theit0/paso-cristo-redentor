@@ -19,5 +19,5 @@
   **Reentrenar** cada tanto: actualizar `closures.csv` con el registrador, `download_weather`, `export`.
 
 ## Fase 3 — Producto
-- [x] **9. Frontend**: un cuadrado por día del año, verde/rojo; pasado en tono claro (real), hoy y futuro en tono pleno (predicción). Rojo si P(cerrado) ≥ 35%. Tooltip con la fecha. (Antes se probaron un tablero con mapa, uno con 8 días y factores, y uno de una sola fecha.)
+- [x] **9. Frontend**: un cuadrado por día del año, verde/rojo; pasado en tono claro (real), hoy y 7 días en tono pleno (predicción), más adelante gris. Rojo si P(cerrado) ≥ 35%. Sin título ni leyenda, centrado, tooltip con la fecha. (Antes se probaron un tablero con mapa, uno con 8 días y factores, y uno de una sola fecha.)
 - [ ] **10. Deploy** (back + front + registrador).

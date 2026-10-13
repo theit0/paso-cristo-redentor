@@ -1,7 +1,8 @@
 # Paso Cristo Redentor
 
 Muestra el año entero del paso a Chile (Cristo Redentor / Los Libertadores), un cuadrado por día:
-los días pasados en tono claro (lo que pasó) y de hoy en adelante en tono pleno (la predicción). Verde abierto, rojo cerrado.
+los días pasados en tono claro (lo que pasó), hoy y los 7 siguientes en tono pleno (la predicción) y el resto en gris.
+Verde abierto, rojo cerrado.
 
 ## Cómo funciona
 
@@ -33,7 +34,8 @@ los días pasados en tono claro (lo que pasó) y de hoy en adelante en tono plen
 - **Pasado:** estado real (histórico curado + registrador). "Solo camiones" cuenta como cerrado.
 - **Hoy:** estado oficial en vivo.
 - **1 a 7 días:** modelo con el pronóstico del tiempo.
-- **Más de 7 días:** tasa de cierre de otros años para esa fecha (no es un pronóstico: marca la época de riesgo).
+- **Más de 7 días:** gris. No hay pronóstico a esa distancia (el promedio de otros años se vería igual de firme
+  que una predicción y no lo es).
 - **Criterio:** rojo si la probabilidad de cierre es **≥ 35%** (`UMBRAL_CERRADO` en
   [routes.py](backend/app/api/routes.py)). Con el mismo % de aciertos que usar 50%, detecta 73% de los cierres en vez
   de 63%: un verde equivocado (viajar y encontrarlo cerrado) cuesta más que un rojo equivocado.
@@ -83,7 +85,7 @@ Conviene hacerlo antes de cada invierno, sumando a `closures.csv` los cierres nu
 
 ## API
 
-- `GET /api/year` → todos los días del año en curso: `{hoy, dias: [{fecha, cerrado}]}`.
+- `GET /api/year` → todos los días del año en curso: `{hoy, dias: [{fecha, cerrado}]}` (`cerrado: null` más allá de 7 días).
 
 ## Limitaciones
 

@@ -18,15 +18,14 @@ def health():
 
 
 def prob_closed(target: date, today: date, status: dict, obs: dict, fc: dict) -> float:
-    h = (target - today).days
-    if h <= predict.MAX_HORIZON:  # 1–7 días: modelo con pronóstico
-        return predict.probability(predict.features_row(status, obs, fc, today, h))
-    return predict.climatology(target)  # más lejos: tasa de cierre de otros años
+    """Modelo con pronóstico, para 1 a 7 días."""
+    return predict.probability(predict.features_row(status, obs, fc, today, (target - today).days))
 
 
 @router.get("/year")
 def year():
-    """Todos los días del año en curso: pasados = real, hoy = estado oficial, futuros = predicción."""
+    """Todos los días del año en curso: pasados = real, hoy = estado oficial, 1–7 días = predicción,
+    más adelante = sin dato (null): no hay pronóstico a esa distancia."""
     today = live.today()
     try:
         official = live.official_status()
@@ -39,8 +38,10 @@ def year():
     while d.year == today.year:
         if d <= today:
             cerrado = status.get(d, "abierto") != "abierto"
-        else:
+        elif (d - today).days <= predict.MAX_HORIZON:
             cerrado = prob_closed(d, today, status, obs, fc) >= UMBRAL_CERRADO
+        else:
+            cerrado = None
         days.append({"fecha": d.isoformat(), "cerrado": cerrado})
         d += timedelta(days=1)
     return {"hoy": today.isoformat(), "dias": days}
