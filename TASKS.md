@@ -19,5 +19,5 @@
   **Reentrenar** cada tanto: actualizar `closures.csv` con el registrador, `download_weather`, `export`.
 
 ## Fase 3 — Producto
-- [x] **9. Frontend** (shadcn/ui + Tailwind): un selector de fecha (hoy → 1 año) y el resultado: **Abierto** o **Cerrado** (P(cerrado) ≥ 50%) con su porcentaje, una barra y la fuente/confianza. Se probaron versiones con mapa y calendarios anuales; se simplificó a pedido.
+- [x] **9. Frontend** (React + Tailwind; shadcn solo para el calendario): tablero oscuro con estado en vivo, resumen de la semana (días probables de abierto, mejor día), curva de probabilidad a 8 días con clima por día, detalle del día con medidor, factores del modelo y punto de partida, contexto (nieve reciente, en el suelo, días en el estado actual) y consulta de otra fecha. Antes se probaron una versión con mapa/calendarios y una mínima de una sola fecha.
 - [ ] **10. Deploy** (back + front + registrador).

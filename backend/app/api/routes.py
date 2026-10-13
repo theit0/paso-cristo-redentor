@@ -27,12 +27,29 @@ def verdict(p: float) -> str:
     return "cerrado" if p >= 0.65 else "abierto" if p <= 0.35 else "incierto"
 
 
+def _r(x: float | None, nd: int = 1) -> float | None:
+    return None if x is None else round(x, nd)
+
+
+def weather_of(day: dict | None) -> dict | None:
+    """Pronóstico JMA del día (el mismo que usa el modelo), peor de los dos lados del paso."""
+    if not day:
+        return None
+    return {
+        "nieve_cm": _r(day.get("snowfall_sum")), "precip_mm": _r(day.get("precipitation_sum")),
+        "viento_kmh": _r(day.get("wind_speed_10m_max"), 0),
+        "temp_min": _r(day.get("temperature_2m_min"), 0), "temp_max": _r(day.get("temperature_2m_max"), 0),
+    }
+
+
 def predict_one(target: date, today: date, official: dict, status: dict, obs: dict, fc: dict) -> dict:
     h = (target - today).days
+    factores = []
     if h == 0:  # hoy: manda el estado oficial
         p, fuente, confianza = (1.0 if live.to_status(official["estado"]) != "abierto" else 0.0), "estado_oficial", "alta"
     elif h <= predict.MAX_HORIZON:
-        p = predict.probability(predict.features_row(status, obs, fc, today, h))
+        row = predict.features_row(status, obs, fc, today, h)
+        p, factores = predict.probability(row), predict.top_factors(row)
         fuente, confianza = "modelo", "alta" if h <= 3 else "media"
     else:  # sin pronóstico útil: tasa histórica de cierre para esa fecha
         p, fuente, confianza = predict.climatology(target), "climatologia", "baja"
@@ -46,6 +63,24 @@ def predict_one(target: date, today: date, official: dict, status: dict, obs: di
         "confianza": confianza,
         "fuente": fuente,
         "aciertos_historicos_invierno": metricas and metricas["aciertos"],
+        "clima": weather_of(fc.get(target)) if h <= predict.MAX_HORIZON else None,
+        "factores": factores,
+        "base_abierto": round(1 - predict.base_probability(), 3) if factores else None,
+    }
+
+
+def context(today: date, status: dict, obs: dict, fc: dict) -> dict:
+    """Lo que el modelo sabe de hoy y de los días pasados."""
+    row = predict.features_row(status, obs, fc, today, 1)
+    suelo = row["nieve_suelo"]
+    return {
+        "dias_en_estado": row["dias_en_estado"],
+        "nieve_3d_cm": _r(row["nieve_3d"]),
+        "nieve_7d_cm": _r(row["nieve_7d"]),
+        "nieve_14d_cm": _r(row["nieve_14d"]),
+        "nieve_suelo_cm": None if suelo is None else round(suelo * 100),  # Open-Meteo da metros
+        "dias_sin_nevada": row["dias_sin_nevada"],
+        "temp_min_ayer": _r(row["temp_min_ayer"], 0),
     }
 
 
@@ -65,6 +100,7 @@ def predict_endpoint(date_: date | None = Query(None, alias="date", description=
         "hoy": today.isoformat(),
         "estado_actual": {k: official[k] for k in ("estado", "estado_vialidad", "horario", "horario_cancilleria", "source_time")},
         "modelo": predict.model()["version"],
+        "contexto": context(today, status, obs, fc),
         "predicciones": [predict_one(t, today, official, status, obs, fc) for t in targets],
     }
 

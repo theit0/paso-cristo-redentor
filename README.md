@@ -221,6 +221,9 @@ npm run dev                    # :5173, /api va al backend por proxy
 
 - `GET /api/predict?date=AAAA-MM-DD` → probabilidad de cerrado/abierto, veredicto, confianza y fuente
   (`estado_oficial` hoy, `modelo` a 1–7 días, `climatologia` más allá). Sin `date`: próximos 8 días.
+  Cada día trae además `clima` (pronóstico JMA), `factores` (lo que más empuja hacia abierto/cerrado,
+  exacto porque el modelo es lineal en log-odds) y `base_abierto`; la respuesta incluye `contexto`
+  (días en el estado actual, nieve reciente y en el suelo, días sin nevar, mínima de ayer).
 - `GET /api/status` → estado oficial en vivo.
 
 ## Modelo
