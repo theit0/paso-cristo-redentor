@@ -115,26 +115,30 @@ export function SnowMap({ grid, fecha }: { grid: SnowGrid; fecha: string }) {
   }, [grid, fecha])
 
   return (
-    <div>
-      <canvas ref={ref} width={W * DPR} height={H * DPR} className="block rounded" style={{ width: W, height: H }} />
-      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 px-0.5 text-[10px] text-white/90">
-        <span>Nieve nueva</span>
-        {SNOW.map(([min, color]) => (
-          <span key={min} className="flex items-center gap-0.5">
-            <span className="inline-block size-2 rounded-[1px] ring-1 ring-white/80" style={{ background: color }} />
-            {min}
-          </span>
-        ))}
-        <span>cm</span>
-        <span className="ml-1 flex items-center gap-0.5">
-          <span className="inline-block size-2 rounded-[1px] ring-1 ring-white/80" style={{ background: RAIN }} />
-          lluvia
+    // el canvas llena el contenedor (el cuadrado ampliado de la grilla)
+    <canvas ref={ref} width={W * DPR} height={H * DPR} className="absolute inset-0 block h-full w-full" />
+  )
+}
+
+export function SnowLegend() {
+  return (
+    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] text-neutral-200">
+      <span>Nieve nueva</span>
+      {SNOW.map(([min, color]) => (
+        <span key={min} className="flex items-center gap-0.5">
+          <span className="inline-block size-2 rounded-[1px]" style={{ background: color }} />
+          {min}
         </span>
-        <span className="ml-1 flex items-center gap-0.5">
-          <span className="inline-block size-2 rounded-full border border-white bg-neutral-950" />
-          paso
-        </span>
-      </div>
+      ))}
+      <span>cm</span>
+      <span className="ml-1 flex items-center gap-0.5">
+        <span className="inline-block size-2 rounded-[1px]" style={{ background: RAIN }} />
+        lluvia
+      </span>
+      <span className="ml-1 flex items-center gap-0.5">
+        <span className="inline-block size-2 rounded-full border border-white bg-neutral-950" />
+        paso
+      </span>
     </div>
   )
 }

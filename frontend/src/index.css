@@ -4,10 +4,3 @@ body {
   background: #fff;
   font-family: system-ui, sans-serif;
 }
-
-/* el cuadrado predicho crece hasta mostrar el mapa */
-@keyframes grow-tile {
-  from { transform: scale(0.08); opacity: 0.4; }
-  to { transform: scale(1); opacity: 1; }
-}
-.grow-tile { animation: grow-tile 160ms ease-out; }
