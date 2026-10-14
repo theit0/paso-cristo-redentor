@@ -19,7 +19,7 @@ def health():
 
 @router.get("/snowmap")
 def snowmap():
-    """Nieve en el suelo en la zona del paso para los próximos 8 días (para el mapita del hover)."""
+    """Nieve nueva y lluvia por día en la zona del paso, próximos 8 días (para el mapita del hover)."""
     try:
         return live.snow_map()
     except httpx.HTTPError as e:

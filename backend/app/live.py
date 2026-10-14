@@ -144,23 +144,25 @@ def _open_meteo(lat: float, lon: float, **params) -> dict:
 
 @ttl_cache(3 * 3600)
 def snow_map() -> dict:
-    """Nieve en el suelo (cm, al mediodía) en una grilla alrededor del paso, para los próximos 8 días.
-    Un solo pedido con todos los puntos; cada punto cuenta como una llamada en Open-Meteo, por eso el caché largo."""
+    """Lo que cae cada día en una grilla alrededor del paso, para los próximos 8 días: nieve nueva (cm) y lluvia (mm).
+    (La nieve acumulada en el suelo casi no cambia de un día a otro; lo que cambia, y lo que muestra snow-forecast,
+    es lo que cae.) Un solo pedido con todos los puntos; cada punto cuenta como una llamada, por eso el caché largo."""
     lat0, lat1, lon0, lon1 = config.SNOWMAP_BBOX
     rows, cols = config.SNOWMAP_GRID
     pts = [(lat0 + (lat1 - lat0) * r / (rows - 1), lon0 + (lon1 - lon0) * c / (cols - 1))
            for r in range(rows) for c in range(cols)]
     r = HTTP.get(config.OPEN_METEO_URL, params={
         "latitude": ",".join(f"{a:.3f}" for a, _ in pts), "longitude": ",".join(f"{b:.3f}" for _, b in pts),
-        "hourly": "snow_depth", "forecast_days": 8, "timezone": "America/Argentina/Mendoza",
+        "daily": "snowfall_sum,rain_sum", "forecast_days": 8, "timezone": "America/Argentina/Mendoza",
     }, timeout=60)
     r.raise_for_status()
     points = r.json()
-    times = points[0]["hourly"]["time"]
     days = {}
-    for i, ts in enumerate(times):
-        if ts.endswith("T12:00"):
-            days[ts[:10]] = [round((p["hourly"]["snow_depth"][i] or 0) * 100) for p in points]  # metros → cm
+    for i, day in enumerate(points[0]["daily"]["time"]):
+        days[day] = {
+            "nieve": [round(p["daily"]["snowfall_sum"][i] or 0, 1) for p in points],
+            "lluvia": [round(p["daily"]["rain_sum"][i] or 0, 1) for p in points],
+        }
     return {"bbox": config.SNOWMAP_BBOX, "rows": rows, "cols": cols, "dias": days}
 
 

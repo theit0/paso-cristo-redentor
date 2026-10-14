@@ -28,9 +28,9 @@ LOCATIONS = {
     "portillo": (-32.835, -70.130),    # lado chileno (Caracoles), ~2880 m
 }
 
-# Zona del mapita de nieve (lat norte, lat sur, lon oeste, lon este): de Santiago a Mendoza, centrado en el paso.
-SNOWMAP_BBOX = (-31.9, -33.8, -71.0, -69.0)
-SNOWMAP_GRID = (14, 12)  # filas, columnas de puntos de pronóstico (~15 km)
+# Zona del mapita (lat norte, lat sur, lon oeste, lon este): de la costa del Pacífico a Mendoza, como snow-forecast.
+SNOWMAP_BBOX = (-31.0, -35.0, -72.0, -68.5)
+SNOWMAP_GRID = (16, 12)  # filas, columnas de puntos de pronóstico (~28 km); cada punto cuenta como llamada en Open-Meteo
 
 # En producción el historial del registrador se lee de la rama `data` vía API (token de solo lectura).
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
