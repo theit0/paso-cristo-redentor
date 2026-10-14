@@ -16,14 +16,13 @@ const W = 240
 const DPR = 2
 const H = Math.round(W * (Math.abs(relief.bbox[1] - relief.bbox[0]) / (Math.abs(relief.bbox[3] - relief.bbox[2]) * Math.cos((33 * Math.PI) / 180))))
 
-// Nieve nueva del día (cm), de verde a rojo como en snow-forecast; la lluvia va en violeta.
+// Nieve nueva del día (cm), de verde a rojo como en snow-forecast; la lluvia (mm) en escalones de azul.
 const SNOW: [number, string][] = [[1, '#86efac'], [5, '#16a34a'], [15, '#f59e0b'], [30, '#dc2626']]
-const RAIN = '#7c6fd8'
+const RAIN: [number, string][] = [[1, '#93c5fd'], [5, '#3b82f6'], [15, '#1e3a8a']]
 const rgb = (hex: string) => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16))
-const RAIN_RGB = rgb(RAIN)
-function snowColor(cm: number): number[] | null {
+function stepColor(scale: [number, string][], v: number): number[] | null {
   let c: string | null = null
-  for (const [min, color] of SNOW) if (cm >= min) c = color
+  for (const [min, color] of scale) if (v >= min) c = color
   return c ? rgb(c) : null
 }
 const mix = (a: number[], b: number[], t: number) => a.map((v, i) => v * (1 - t) + b[i] * t)
@@ -60,19 +59,19 @@ export function SnowMap({ grid, fecha }: { grid: SnowGrid; fecha: string }) {
         const elev = e(x, y)
         let c: number[]
         if (elev <= 0) {
-          c = [184, 188, 212] // mar
+          c = [226, 230, 236] // mar: gris claro neutro, para que la lluvia azul se note encima
         } else {
           // relieve gris con luz desde el noroeste
           const slope = (e(x - 0.005, y - 0.005) - e(x + 0.005, y + 0.005)) / 500
           const gray = Math.max(95, Math.min(240, 200 + slope * 55 + (elev - 2000) / 90))
           c = [gray, gray, gray]
         }
-        // lluvia: violeta translúcido, más fuerte cuanto más llueve
-        const mm = sample(day.lluvia, grid.rows, grid.cols, x, y)
-        if (mm >= 1) c = mix(c, RAIN_RGB, Math.min(0.65, 0.25 + mm / 40))
+        // lluvia: escalones de azul, bien opacos para que se distingan del relieve
+        const r = stepColor(RAIN, sample(day.lluvia, grid.rows, grid.cols, x, y))
+        if (r) c = mix(c, r, 0.7)
         // nieve nueva: sigue el relieve (en la grilla gruesa del pronóstico se vería en bloques)
         const cm = sample(day.nieve, grid.rows, grid.cols, x, y) * Math.max(0, Math.min(1, (elev - 1000) / 800))
-        const s = snowColor(cm)
+        const s = stepColor(SNOW, cm)
         if (s) c = mix(c, s, 0.75)
         img.data.set([c[0], c[1], c[2], 255], (py * PW + px) * 4)
       }
@@ -126,10 +125,14 @@ export function SnowMap({ grid, fecha }: { grid: SnowGrid; fecha: string }) {
           </span>
         ))}
         <span>cm</span>
-        <span className="ml-1 flex items-center gap-0.5">
-          <span className="inline-block size-2 rounded-[1px]" style={{ background: RAIN }} />
-          lluvia
-        </span>
+        <span className="ml-1">Lluvia</span>
+        {RAIN.map(([min, color]) => (
+          <span key={min} className="flex items-center gap-0.5">
+            <span className="inline-block size-2 rounded-[1px]" style={{ background: color }} />
+            {min}
+          </span>
+        ))}
+        <span>mm</span>
         <span className="ml-1 flex items-center gap-0.5">
           <span className="inline-block size-2 rounded-full border border-white bg-neutral-950" />
           paso

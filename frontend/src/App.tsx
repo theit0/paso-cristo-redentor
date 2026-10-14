@@ -61,7 +61,7 @@ export default function App() {
                 onMouseEnter={e => withMap && setHover({ fecha: d.fecha, below: e.currentTarget.getBoundingClientRect().top < CARD_H })}
                 onMouseLeave={() => withMap && setHover(null)}
                 className={`group relative aspect-square rounded-[2px] transition-transform sm:rounded-sm ${color(d.cerrado, d.fecha < data.hoy)} ${
-                  withMap ? 'hover:z-20 hover:scale-150' : ''
+                  open ? 'z-20 scale-150' : '' // mismo estado que la tarjeta: si no, su compensación de escala puede quedar desfasada
                 }`}
               >
                 {pct(d) !== null && (

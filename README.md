@@ -4,7 +4,7 @@ Muestra el año entero del paso a Chile (Cristo Redentor / Los Libertadores), un
 los días pasados en tono claro (lo que pasó), hoy y los 7 siguientes en tono pleno (la predicción) y el resto en gris.
 Verde abierto, rojo cerrado. Los días predichos muestran su % adentro del cuadrado.
 Al pasar el mouse por un día de hoy en adelante aparece un tooltip con la fecha, el resultado y un mapita de lo que
-cae ese día en la zona (nieve nueva de verde a rojo, lluvia en violeta), estilo snow-forecast. En los días pasados el
+cae ese día en la zona (nieve nueva de verde a rojo, lluvia en azul), estilo snow-forecast. En los días pasados el
 tooltip muestra la fecha y el estado.
 
 ## En pocas palabras
