@@ -28,6 +28,10 @@ LOCATIONS = {
     "portillo": (-32.835, -70.130),    # lado chileno (Caracoles), ~2880 m
 }
 
+# Zona del mapita de nieve (lat norte, lat sur, lon oeste, lon este): de Santiago a Mendoza, centrado en el paso.
+SNOWMAP_BBOX = (-31.9, -33.8, -71.0, -69.0)
+SNOWMAP_GRID = (14, 12)  # filas, columnas de puntos de pronóstico (~15 km)
+
 # En producción el historial del registrador se lee de la rama `data` vía API (token de solo lectura).
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_REPO = os.getenv("GITHUB_REPO", "theit0/paso-cristo-redentor")

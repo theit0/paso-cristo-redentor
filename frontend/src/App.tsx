@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
-import { fetchYear, type Anio, type Dia } from './api'
+import { fetchSnowMap, fetchYear, type Anio, type Dia } from './api'
+import { SnowMap, type SnowGrid } from './SnowMap'
+
+const COLS = 31 // los días van seguidos, sin cortar por mes
+const CARD_H = 330 // alto aproximado de la tarjeta con mapa, para decidir si abre arriba o abajo
 
 // "2026-10-05" → "Lunes 05/10/2026" (se arma a mano para no depender de la zona horaria)
 function tooltip(iso: string) {
@@ -26,13 +30,14 @@ function color(cerrado: boolean | null, pasado: boolean) {
 
 export default function App() {
   const [data, setData] = useState<Anio | null>(null)
+  const [snow, setSnow] = useState<SnowGrid | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [hover, setHover] = useState<{ fecha: string; below: boolean } | null>(null)
 
   useEffect(() => {
     fetchYear().then(setData).catch(e => setError(String(e.message ?? e)))
+    fetchSnowMap().then(setSnow).catch(() => {}) // el mapa es un extra: si falla, queda el tooltip simple
   }, [])
-
-  const COLS = 31 // los días van seguidos, sin cortar por mes
 
   return (
     <main className="flex min-h-svh items-center justify-center px-3 py-10 sm:px-4">
@@ -44,19 +49,40 @@ export default function App() {
           {data.dias.map((d, i) => {
             const col = i % COLS
             // cerca de los bordes, el tooltip se alinea hacia adentro para no salirse de la pantalla
-            const align = col < 4 ? 'left-0' : col >= COLS - 4 ? 'right-0' : 'left-1/2 -translate-x-1/2'
+            const align = col < 6 ? 'left-0' : col >= COLS - 6 ? 'right-0' : 'left-1/2 -translate-x-1/2'
+            const withMap = !!snow?.dias[d.fecha] && d.cerrado !== null && d.fecha >= data.hoy
+            const open = withMap && hover?.fecha === d.fecha
             return (
               <span
                 key={d.fecha}
                 aria-label={`${tooltip(d.fecha)}: ${status(d)}`}
-                className={`group relative aspect-square rounded-[2px] sm:rounded-sm ${color(d.cerrado, d.fecha < data.hoy)}`}
+                onMouseEnter={e => withMap && setHover({ fecha: d.fecha, below: e.currentTarget.getBoundingClientRect().top < CARD_H })}
+                onMouseLeave={() => withMap && setHover(null)}
+                className={`group relative aspect-square rounded-[2px] transition-transform sm:rounded-sm ${color(d.cerrado, d.fecha < data.hoy)} ${
+                  withMap ? 'hover:z-20 hover:scale-150' : ''
+                }`}
               >
-                <span
-                  className={`pointer-events-none absolute bottom-full z-10 mb-1.5 whitespace-nowrap rounded-md bg-neutral-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 ${align}`}
-                >
-                  {tooltip(d.fecha)}
-                  <span className="block text-neutral-300">{status(d)}</span>
-                </span>
+                {withMap ? (
+                  open && (
+                    <span
+                      className={`pointer-events-none absolute z-30 rounded-lg bg-neutral-900 p-2.5 text-xs text-white shadow-xl ${align} ${
+                        hover.below ? 'top-full mt-2' : 'bottom-full mb-2'
+                      }`}
+                      style={{ scale: '0.667' /* compensa el scale-150 del cuadrado */, transformOrigin: hover.below ? 'top' : 'bottom' }}
+                    >
+                      <span className="block whitespace-nowrap">{tooltip(d.fecha)}</span>
+                      <span className="mb-2 block text-neutral-300">{status(d)}</span>
+                      <SnowMap grid={snow!} fecha={d.fecha} />
+                    </span>
+                  )
+                ) : (
+                  <span
+                    className={`pointer-events-none absolute bottom-full z-10 mb-1.5 whitespace-nowrap rounded-md bg-neutral-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 ${align}`}
+                  >
+                    {tooltip(d.fecha)}
+                    <span className="block text-neutral-300">{status(d)}</span>
+                  </span>
+                )}
               </span>
             )
           })}

@@ -3,6 +3,7 @@
 Muestra el año entero del paso a Chile (Cristo Redentor / Los Libertadores), un cuadrado por día:
 los días pasados en tono claro (lo que pasó), hoy y los 7 siguientes en tono pleno (la predicción) y el resto en gris.
 Verde abierto, rojo cerrado. Al pasar el mouse por un cuadrado se ve la fecha y, en los días predichos, el % del resultado que muestra.
+En los días predichos el cuadrado además se agranda y muestra un mapita de la nieve en la zona del paso (estilo snow-forecast).
 
 ## En pocas palabras
 
@@ -74,7 +75,7 @@ backend/app/
   collectors/     lectura de cada fuente
   collect.py      registrador
   ml/             entrenamiento y evaluación (pandas, scikit-learn)
-backend/scripts/  descarga de titulares y clima histórico
+backend/scripts/  descarga de titulares, clima histórico y relieve del mapita
 frontend/         React + Vite + Tailwind
 datasets/         histórico de cierres y clima para entrenar
 ```
@@ -108,6 +109,7 @@ Conviene hacerlo antes de cada invierno, sumando a `closures.csv` los cierres nu
 
 ## API
 
+- `GET /api/snowmap` → nieve en el suelo (cm) en una grilla de 14×12 puntos alrededor del paso, para los próximos 8 días.
 - `GET /api/year` → todos los días del año en curso: `{hoy, dias: [{fecha, cerrado, prob_cerrado}]}`
   (`prob_cerrado` solo en los 7 días predichos; `cerrado: null` más allá).
 

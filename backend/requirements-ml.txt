@@ -2,3 +2,4 @@
 pytest>=8
 pandas>=2.2
 scikit-learn>=1.5
+pillow>=10  # solo para scripts/make_relief.py

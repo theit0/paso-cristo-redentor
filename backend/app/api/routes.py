@@ -17,6 +17,15 @@ def health():
     return {"ok": True}
 
 
+@router.get("/snowmap")
+def snowmap():
+    """Nieve en el suelo en la zona del paso para los próximos 8 días (para el mapita del hover)."""
+    try:
+        return live.snow_map()
+    except httpx.HTTPError as e:
+        raise HTTPException(503, f"No se pudo obtener el mapa de nieve: {e}") from e
+
+
 def prob_closed(target: date, today: date, status: dict, obs: dict, fc: dict) -> float:
     """Modelo con pronóstico, para 1 a 7 días."""
     return predict.probability(predict.features_row(status, obs, fc, today, (target - today).days))

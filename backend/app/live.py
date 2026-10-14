@@ -142,6 +142,28 @@ def _open_meteo(lat: float, lon: float, **params) -> dict:
     return r.json()["hourly"]
 
 
+@ttl_cache(3 * 3600)
+def snow_map() -> dict:
+    """Nieve en el suelo (cm, al mediodía) en una grilla alrededor del paso, para los próximos 8 días.
+    Un solo pedido con todos los puntos; cada punto cuenta como una llamada en Open-Meteo, por eso el caché largo."""
+    lat0, lat1, lon0, lon1 = config.SNOWMAP_BBOX
+    rows, cols = config.SNOWMAP_GRID
+    pts = [(lat0 + (lat1 - lat0) * r / (rows - 1), lon0 + (lon1 - lon0) * c / (cols - 1))
+           for r in range(rows) for c in range(cols)]
+    r = HTTP.get(config.OPEN_METEO_URL, params={
+        "latitude": ",".join(f"{a:.3f}" for a, _ in pts), "longitude": ",".join(f"{b:.3f}" for _, b in pts),
+        "hourly": "snow_depth", "forecast_days": 8, "timezone": "America/Argentina/Mendoza",
+    }, timeout=60)
+    r.raise_for_status()
+    points = r.json()
+    times = points[0]["hourly"]["time"]
+    days = {}
+    for i, ts in enumerate(times):
+        if ts.endswith("T12:00"):
+            days[ts[:10]] = [round((p["hourly"]["snow_depth"][i] or 0) * 100) for p in points]  # metros → cm
+    return {"bbox": config.SNOWMAP_BBOX, "rows": rows, "cols": cols, "dias": days}
+
+
 @ttl_cache(3600)
 def weather() -> tuple[dict[date, dict], dict[date, dict]]:
     """(observado últimos 61 días con best_match, pronóstico JMA a 7 días) — mismas fuentes que el entrenamiento."""
