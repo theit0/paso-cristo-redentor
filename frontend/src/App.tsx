@@ -3,7 +3,7 @@ import { fetchSnowMap, fetchYear, type Anio, type Dia } from './api'
 import { SnowMap, type SnowGrid } from './SnowMap'
 
 const COLS = 31 // los días van seguidos, sin cortar por mes
-const CARD_H = 360 // alto aproximado de la tarjeta con mapa, para decidir si abre arriba o abajo
+const CARD_H = 420 // alto aproximado de la tarjeta con mapa, para decidir si abre arriba o abajo
 
 // "2026-10-05" → "Lunes 05/10/2026" (se arma a mano para no depender de la zona horaria)
 function tooltip(iso: string) {
