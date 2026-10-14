@@ -2,9 +2,9 @@
 
 Muestra el año entero del paso a Chile (Cristo Redentor / Los Libertadores), un cuadrado por día:
 los días pasados en tono claro (lo que pasó), hoy y los 7 siguientes en tono pleno (la predicción) y el resto en gris.
-Verde abierto, rojo cerrado. Al pasar el mouse por un cuadrado se ve la fecha y, en los días predichos, el % del resultado que muestra.
-En los días predichos el cuadrado además se agranda y muestra un mapita de lo que cae ese día en la zona
-(nieve nueva de verde a rojo, lluvia en violeta), estilo snow-forecast.
+Verde abierto, rojo cerrado. Los días predichos llevan su % escrito adentro; al pasar el mouse, el cuadrado crece
+y muestra un mapita de lo que cae ese día en la zona (nieve nueva de verde a rojo, lluvia en violeta), estilo
+snow-forecast. En el resto de los días, el mouse muestra la fecha.
 
 ## En pocas palabras
 

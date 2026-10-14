@@ -117,17 +117,17 @@ export function SnowMap({ grid, fecha }: { grid: SnowGrid; fecha: string }) {
   return (
     <div>
       <canvas ref={ref} width={W * DPR} height={H * DPR} className="block rounded" style={{ width: W, height: H }} />
-      <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] text-neutral-300">
+      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 px-0.5 text-[10px] text-white/90">
         <span>Nieve nueva</span>
         {SNOW.map(([min, color]) => (
           <span key={min} className="flex items-center gap-0.5">
-            <span className="inline-block size-2 rounded-[1px]" style={{ background: color }} />
+            <span className="inline-block size-2 rounded-[1px] ring-1 ring-white/80" style={{ background: color }} />
             {min}
           </span>
         ))}
         <span>cm</span>
         <span className="ml-1 flex items-center gap-0.5">
-          <span className="inline-block size-2 rounded-[1px]" style={{ background: RAIN }} />
+          <span className="inline-block size-2 rounded-[1px] ring-1 ring-white/80" style={{ background: RAIN }} />
           lluvia
         </span>
         <span className="ml-1 flex items-center gap-0.5">
