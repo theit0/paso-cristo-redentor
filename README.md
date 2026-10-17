@@ -36,7 +36,7 @@ tooltip muestra la fecha y el estado.
 - **Estado en vivo:** API del Ministerio de Seguridad (abierto/cerrado) + parte diario del Gobierno de Mendoza
   (si pasan todos los vehículos o solo camiones, y temperaturas en la ruta). El aviso del Ministerio a veces queda
   viejo; por eso el detalle sale del parte de Mendoza.
-- **Clima:** Open-Meteo, gratis. Pronóstico a 7 días del modelo JMA y clima de los últimos 61 días, en Las Cuevas
+- **Clima:** [Open-Meteo](https://open-meteo.com) (datos [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)), gratis. Pronóstico a 7 días del modelo JMA y clima de los últimos 61 días, en Las Cuevas
   (lado argentino) y Portillo (lado chileno); se toma el peor de los dos.
 - **Histórico de cierres 2022–2026** ([datasets/closures.csv](datasets/closures.csv)): no existe uno oficial, así que
   se reconstruyó a mano desde ~4.000 titulares de prensa. 100 cierres, cada uno con su fuente.
@@ -120,5 +120,9 @@ Conviene hacerlo antes de cada invierno, sumando a `closures.csv` los cierres nu
 - El histórico sale de la prensa: puede faltar algún cierre corto.
 - Hay 5 inviernos de datos; 2026 fue récord.
 - GitHub ejecuta el registrador con demoras (a veces pocas veces por día).
-- Dos colores esconden cuán segura es cada predicción (un 36% y un 99% se ven igual).
+- Dos colores esconden cuán segura es cada predicción (un 51% y un 99% se ven igual).
 - Es una estimación: antes de viajar, consultar las fuentes oficiales.
+
+## Licencia
+
+Código bajo [MIT](LICENSE). Datos meteorológicos de [Open-Meteo.com](https://open-meteo.com), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
