@@ -12,15 +12,12 @@ function tooltip(iso: string) {
   return `${dia[0].toUpperCase()}${dia.slice(1)} ${d}/${m}/${y}`
 }
 
-// % del resultado que muestra el cuadrado (solo días predichos; pasado y hoy son dato real)
-const pct = (d: Dia) => (d.prob_cerrado === null ? null : Math.round((d.cerrado ? d.prob_cerrado : 1 - d.prob_cerrado) * 100))
-
-// Segunda línea del tooltip: el resultado que muestra el cuadrado, con su % en los días predichos.
+// Segunda línea del tooltip: en los días predichos, % de abierto y de cerrado; en pasado y hoy, el dato real.
 function status(d: Dia) {
   if (d.cerrado === null) return 'Sin pronóstico'
-  const label = d.cerrado ? 'Cerrado' : 'Abierto'
-  const p = pct(d)
-  return p === null ? label : `${label} ${p}%`
+  if (d.prob_cerrado === null) return d.cerrado ? 'Cerrado' : 'Abierto'
+  const cerrado = Math.round(d.prob_cerrado * 100)
+  return `Abierto ${100 - cerrado}% · Cerrado ${cerrado}%` // 100 - x para que siempre sumen 100
 }
 
 // Días predichos: el cuadrado se llena de rojo desde abajo según P(cerrado) y el resto queda verde.
@@ -74,12 +71,6 @@ export default function App() {
                   open ? 'z-20 scale-150' : '' // mismo estado que la tarjeta: si no, su compensación de escala puede quedar desfasada
                 }`}
               >
-                {pct(d) !== null && (
-                  // % en blanco dentro del cuadrado (en celular no entra); la sombra lo hace legible sobre el corte rojo/verde
-                  <span className="pointer-events-none absolute inset-0 hidden items-center justify-center text-[9px] font-semibold leading-none text-white [text-shadow:0_1px_2px_rgb(0_0_0/0.45)] sm:flex lg:text-[11px]">
-                    {pct(d)}%
-                  </span>
-                )}
                 {withMap ? (
                   open && (
                     <span
