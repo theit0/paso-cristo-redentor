@@ -47,4 +47,5 @@ jobs:
           git add backend/app/model.json datasets/weather_observed.csv datasets/weather_forecast.csv
           git diff --cached --quiet && exit 0
           git commit -qm "Reentrenamiento automático $(date -u +%F)"
+          git pull --rebase -q   # por si main avanzó durante los ~20 min del run
           git push
