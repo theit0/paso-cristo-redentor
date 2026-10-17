@@ -2,8 +2,11 @@
 
 En producción se usa ese JSON con Python puro: el servidor no necesita pandas ni scikit-learn.
 Uso (desde backend/): python -m app.ml.export
+Si el modelo nuevo empeora el Brier de invierno en más de TOLERANCIA a alguna anticipación respecto del actual,
+no se exporta y sale con código 1 (así el reentrenamiento automático no publica un modelo peor).
 """
 import json
+import sys
 from datetime import date
 
 import numpy as np
@@ -15,6 +18,7 @@ from app.ml.model import logistic
 
 OUT = REPO_DIR / "backend" / "app" / "model.json"
 WINTER = (5, 6, 7, 8, 9, 10)
+TOLERANCIA = 0.01
 
 
 def metrics_by_horizon(table) -> dict:
@@ -33,6 +37,11 @@ def metrics_by_horizon(table) -> dict:
     return out
 
 
+def worse_horizons(new: dict, old: dict) -> list[str]:
+    """Anticipaciones donde el Brier nuevo supera al viejo en más de TOLERANCIA (claves "1".."7", como en el JSON)."""
+    return [h for h, m in new.items() if h in old and m["brier"] > old[h]["brier"] + TOLERANCIA]
+
+
 def main() -> None:
     status = status_days()
     table = features.build(status)
@@ -49,8 +58,15 @@ def main() -> None:
         "coef": lr.coef_[0].round(6).tolist(),
         "intercepto": round(float(lr.intercept_[0]), 6),
         "climatologia": clim.round(4).tolist(),  # índice 0 = día del año 1
-        "metricas_invierno": metrics_by_horizon(table),
+        "metricas_invierno": {str(h): m for h, m in metrics_by_horizon(table).items()},
     }
+    if OUT.exists():
+        old = json.loads(OUT.read_text(encoding="utf-8"))["metricas_invierno"]
+        for h, m in model["metricas_invierno"].items():
+            print(f"h={h}: brier {old.get(h, {}).get('brier')} -> {m['brier']}")
+        if worse := worse_horizons(model["metricas_invierno"], old):
+            print(f"El modelo nuevo es peor a {', '.join(worse)} días: no se exporta.", file=sys.stderr)
+            sys.exit(1)
     OUT.write_text(json.dumps(model, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"modelo exportado a {OUT} ({OUT.stat().st_size // 1024} KB)")
 

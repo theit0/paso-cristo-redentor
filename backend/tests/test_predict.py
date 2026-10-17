@@ -72,3 +72,10 @@ def test_run_length_caps_and_defaults_to_open():
     assert predict.run_length(st, date(2024, 6, 4)) == 2  # 3 y 4 sin dato = abierto
     assert predict.run_length({}, date(2024, 6, 4)) == 60
     assert math.isclose(predict.run_length({}, date(2024, 6, 4), cap=5), 5)
+
+
+def test_export_rejects_worse_model():
+    from app.ml.export import worse_horizons
+    old = {"1": {"brier": 0.10}, "7": {"brier": 0.15}}
+    assert worse_horizons({"1": {"brier": 0.105}, "7": {"brier": 0.14}}, old) == []
+    assert worse_horizons({"1": {"brier": 0.12}, "7": {"brier": 0.15}}, old) == ["1"]

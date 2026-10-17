@@ -69,15 +69,15 @@ def current_status(official: dict, report: dict | None) -> str:
     return ministry
 
 
-def _collected_records() -> list[dict]:
-    """Registros del registrador (rama data): de GitHub en producción, del disco en local."""
+def _collected_records(kind: str) -> list[dict]:
+    """Registros del registrador (rama data): de GitHub en producción (últimos 2 meses), del disco en local."""
     if not config.GITHUB_TOKEN:
-        return list(store.newest_first("status"))
+        return list(store.newest_first(kind))
     t = today()
     months = {t.strftime("%Y-%m"), (t.replace(day=1) - timedelta(days=1)).strftime("%Y-%m")}
     records = []
     for month in months:
-        r = HTTP.get(f"https://api.github.com/repos/{config.GITHUB_REPO}/contents/status/{month}.jsonl",
+        r = HTTP.get(f"https://api.github.com/repos/{config.GITHUB_REPO}/contents/{kind}/{month}.jsonl",
                      params={"ref": "data"},
                      headers={"Authorization": f"Bearer {config.GITHUB_TOKEN}", "Accept": "application/vnd.github.raw"})
         if r.status_code == 404:
@@ -87,9 +87,22 @@ def _collected_records() -> list[dict]:
     return records
 
 
-@ttl_cache(3600)
-def status_history() -> dict[date, str]:
-    """Estado por día: closures.csv (histórico curado) + registrador (último registro de cada día)."""
+def registrador_days(status_records: list[dict], mendoza_records: list[dict]) -> dict[date, str]:
+    """Estado por día según el registrador, con la misma regla que current_status: el último registro
+    del Ministerio decide abierto/cerrado y, si está abierto, el parte de Mendoza de ese día dice si es solo cargas.
+    Lo usan la app (historial) y el reentrenamiento (app.ml.data), así ven lo mismo."""
+    days: dict[date, str] = {}
+    for r in sorted(status_records, key=lambda r: r["fetched_at"]):
+        days[datetime.fromisoformat(r["fetched_at"]).astimezone(TZ).date()] = to_status(r.get("estado"))
+    for r in sorted(mendoza_records, key=lambda r: r["fetched_at"]):
+        d = date.fromisoformat(r["publicado"][:10])  # el parte vale para el día en que se publicó
+        if days.get(d) == "abierto" and r.get("estado") == "solo_cargas":
+            days[d] = "solo_cargas"
+    return days
+
+
+def closures_days() -> dict[date, str]:
+    """datasets/closures.csv (histórico curado a mano) → estado por día; los días que faltan son abiertos."""
     status: dict[date, str] = {}
     with (config.REPO_DIR / "datasets" / "closures.csv").open(encoding="utf-8") as f:
         for row in csv.DictReader(f):
@@ -97,10 +110,13 @@ def status_history() -> dict[date, str]:
             while d < end:
                 status[d] = row["scope"]
                 d += timedelta(days=1)
-    for r in sorted(_collected_records(), key=lambda r: r["fetched_at"]):
-        day = datetime.fromisoformat(r["fetched_at"]).astimezone(TZ).date()
-        status[day] = to_status(r.get("estado"))
     return status
+
+
+@ttl_cache(3600)
+def status_history() -> dict[date, str]:
+    """Estado por día: closures.csv (histórico curado) + registrador."""
+    return {**closures_days(), **registrador_days(_collected_records("status"), _collected_records("mendoza"))}
 
 
 WORST = {"snowfall_sum": max, "precipitation_sum": max, "wind_speed_10m_max": max, "snow_depth_max": max,

@@ -40,7 +40,7 @@ tooltip muestra la fecha y el estado.
   (lado argentino) y Portillo (lado chileno); se toma el peor de los dos.
 - **Histórico de cierres 2022–2026** ([datasets/closures.csv](datasets/closures.csv)): no existe uno oficial, así que
   se reconstruyó a mano desde ~4.000 titulares de prensa. 100 cierres, cada uno con su fuente.
-- **Registrador:** GitHub Actions guarda estado, parte y pronóstico en la rama `data` para ir sumando historial propio.
+- **Registrador:** GitHub Actions guarda el estado del Ministerio y el parte de Mendoza en la rama `data` para ir sumando historial propio.
 
 ### 2. Modelo
 
@@ -99,6 +99,13 @@ Historial del registrador en local (opcional): `git fetch origin data && git wor
 
 ## Reentrenar
 
+Es automático: el workflow [Reentrenar](.github/workflows/retrain.yml) corre el 1° de cada mes. Baja el clima,
+entrena con `closures.csv` (hasta el 12/10/2026) más lo que guardó el registrador después, y sube `app/model.json`
+a `main` solo si los tests pasan y el modelo no empeora (Brier de invierno, tolerancia 0,01 por anticipación).
+Si se rechaza, el run falla y GitHub avisa por mail. Se puede correr a mano desde la pestaña Actions.
+
+A mano (necesita la rama `data` en `data/`, ver arriba):
+
 ```bash
 cd backend
 python -m scripts.download_weather                  # clima histórico actualizado
@@ -106,7 +113,7 @@ python -m app.ml.evaluate > ../docs/evaluacion.md   # comparar contra las altern
 python -m app.ml.export                             # entrenar y generar app/model.json
 ```
 
-Conviene hacerlo antes de cada invierno, sumando a `closures.csv` los cierres nuevos.
+`closures.csv` ya no hace falta actualizarlo: los cierres nuevos salen del registrador.
 
 ## API
 

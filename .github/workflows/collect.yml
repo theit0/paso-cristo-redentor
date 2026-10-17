@@ -31,9 +31,7 @@ jobs:
         working-directory: backend
         env:
           PASO_DATA_DIR: ${{ github.workspace }}/data
-        # Todo en cada corrida: GitHub ejecuta el cron con demoras y a veces solo ~3 veces por día,
-        # así que condicionar por hora hacía que el pronóstico no se guardara nunca.
-        run: python -m app.collect status mendoza forecast
+        run: python -m app.collect status mendoza
 
       - name: Guardar en rama data
         if: always() # guarda lo que se haya obtenido aunque una fuente falle

@@ -15,10 +15,11 @@ POINTS = ("Uspallata", "Punta de Vacas", "Puente del Inca", "Las Cuevas")
 def classify(text: str) -> str | None:
     """Texto del parte → 'total' / 'solo_cargas' / 'abierto' (None si no se entiende)."""
     t = text.lower()
-    if "cerrad" in t:
-        return "total"
+    # antes que "cerrad": "Cerrado para livianos, habilitado solo para cargas" es solo cargas
     if "carga" in t and ("solo" in t or "exclusiv" in t):
         return "solo_cargas"
+    if "cerrad" in t:
+        return "total"
     if "habilitad" in t or "abiert" in t:
         return "abierto"
     return None
@@ -51,4 +52,7 @@ def fetch(client: httpx.Client) -> dict:
     posts = r.json()
     if not posts:
         raise ValueError("No hay parte publicado")
-    return parse(posts[0])
+    r = parse(posts[0])
+    if r["aviso"] is None:  # la búsqueda a veces devuelve un post viejo de otro formato (pasó el 15/10/2026)
+        raise ValueError(f"El último post ({r['publicado']}) no trae el aviso del Cristo Redentor")
+    return r

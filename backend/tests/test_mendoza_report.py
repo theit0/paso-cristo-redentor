@@ -36,3 +36,4 @@ def test_classify():
     assert classify("Habilitado exclusivamente para cargas de Argentina a Chile") == "solo_cargas"
     assert classify("Habilitado las 24 horas para todo tipo de vehículos.") == "abierto"
     assert classify("Se evaluará mañana") is None
+    assert classify("Cerrado para vehículos livianos. Habilitado solo para cargas.") == "solo_cargas"

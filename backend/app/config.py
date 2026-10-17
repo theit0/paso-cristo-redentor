@@ -10,18 +10,6 @@ PASSES_URL = "https://www.argentina.gob.ar/seguridad/pasosinternacionales/listad
 PASS_ID = 29  # Sistema Cristo Redentor
 
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
-FORECAST_DAYS = 7
-HOURLY_VARS = [
-    "temperature_2m",
-    "precipitation",
-    "snowfall",
-    "snow_depth",
-    "wind_speed_10m",
-    "wind_gusts_10m",
-    "freezing_level_height",
-    "visibility",
-    "cloud_cover",
-]
 # Un punto de cada lado: el paso cierra si cualquiera de los dos no está transitable.
 LOCATIONS = {
     "las_cuevas": (-32.811, -70.050),  # lado argentino, ~3150 m

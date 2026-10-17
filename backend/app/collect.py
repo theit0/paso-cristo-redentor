@@ -1,6 +1,6 @@
-"""Registrador: guarda una foto del estado del paso y/o del pronóstico.
+"""Registrador: guarda una foto del estado del paso (Ministerio) y del parte de Mendoza.
 
-Uso: python -m app.collect [status] [mendoza] [forecast]   (sin argumentos: todos)
+Uso: python -m app.collect [status] [mendoza]   (sin argumentos: todos)
 Sale con código 1 si alguna fuente falló, después de guardar las que funcionaron.
 """
 import argparse
@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 import httpx
 
 from app import store
-from app.collectors import forecast, mendoza_report, pass_status
+from app.collectors import mendoza_report, pass_status
 
 log = logging.getLogger("collect")
 
@@ -28,13 +28,8 @@ def collect_mendoza(client: httpx.Client, now: str) -> None:
     log.info("parte Mendoza (%s): %s", r["publicado"], r["aviso"])
 
 
-def collect_forecast(client: httpx.Client, now: str) -> None:
-    for loc, data in forecast.fetch(client).items():
-        store.append("forecast", {"fetched_at": now, "location": loc, "data": data})
-    log.info("pronóstico guardado")
-
-
-COLLECTORS = {"status": collect_status, "mendoza": collect_mendoza, "forecast": collect_forecast}
+# El pronóstico no se guarda: Open-Meteo ya lo archiva (Previous Runs API, de ahí sale el entrenamiento).
+COLLECTORS = {"status": collect_status, "mendoza": collect_mendoza}
 
 
 def run(kinds: list[str]) -> bool:
