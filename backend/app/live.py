@@ -1,6 +1,7 @@
 """Datos en vivo para predecir: estado oficial, historial de estados, clima reciente y pronóstico JMA."""
 import csv
 import json
+import threading
 import time
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
@@ -22,15 +23,18 @@ def today() -> date:
 
 
 def ttl_cache(seconds: int):
-    """Cachea el último resultado de una función sin argumentos durante `seconds`."""
+    """Cachea el último resultado de una función sin argumentos durante `seconds`.
+    El lock evita que varios pedidos simultáneos con el caché vencido salgan todos a la API externa."""
     def deco(fn):
         slot = {"at": 0.0, "value": None}
+        lock = threading.Lock()
 
         @wraps(fn)
         def wrapper():
-            if time.monotonic() - slot["at"] > seconds:
-                slot["value"], slot["at"] = fn(), time.monotonic()
-            return slot["value"]
+            with lock:
+                if time.monotonic() - slot["at"] > seconds:
+                    slot["value"], slot["at"] = fn(), time.monotonic()
+                return slot["value"]
         return wrapper
     return deco
 

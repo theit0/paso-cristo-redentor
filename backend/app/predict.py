@@ -9,7 +9,7 @@ from functools import cache
 from pathlib import Path
 
 MODEL_PATH = Path(__file__).with_name("model.json")
-MAX_HORIZON = 7  # más allá no hay pronóstico en el entrenamiento → climatología
+MAX_HORIZON = 7  # más allá no hay pronóstico en el entrenamiento → sin dato
 
 Daily = dict[date, dict]  # día → {"snowfall_sum": ..., ...}
 
@@ -84,7 +84,3 @@ def probability(row: dict) -> float:
         x = row[name] if row[name] is not None else med
         z += w * (x - mu) / sd
     return 1 / (1 + math.exp(-z))
-
-
-def climatology(target: date) -> float:
-    return model()["climatologia"][target.timetuple().tm_yday - 1]

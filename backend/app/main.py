@@ -12,11 +12,19 @@ app = FastAPI(title="Paso Cristo Redentor")
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS, allow_methods=["GET"], allow_headers=["*"])
 
 # Rate limit por IP, ventana fija. Una carga de página son ~6 pedidos: 30/min deja ~5 recargas por minuto.
-# La IP real llega por X-Forwarded-For (uvicorn corre con --proxy-headers).
 # ponytail: en memoria y por proceso; si algún día hay varias réplicas, pasarlo a Redis.
 RATE_WINDOW, RATE_MAX = 60, 30
 _hits: dict[str, int] = {}
 _window_start = 0.0
+
+
+def client_ip(request: Request) -> str:
+    """El último X-Forwarded-For lo agrega el proxy de Railway; los anteriores los puede inventar el cliente
+    (por eso no sirve request.client: con --forwarded-allow-ips='*' uvicorn toma el primero)."""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.rsplit(",", 1)[-1].strip()
+    return request.client.host if request.client else "?"
 
 
 @app.middleware("http")
@@ -26,7 +34,7 @@ async def rate_limit(request: Request, call_next):
     if now - _window_start > RATE_WINDOW:
         _hits.clear()  # vaciar por ventana también evita que el dict crezca sin límite
         _window_start = now
-    ip = request.client.host if request.client else "?"
+    ip = client_ip(request)
     _hits[ip] = _hits.get(ip, 0) + 1
     if _hits[ip] > RATE_MAX:
         return JSONResponse({"detail": "Demasiados pedidos, probá en un minuto."}, status_code=429,
