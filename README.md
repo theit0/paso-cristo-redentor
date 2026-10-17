@@ -1,3 +1,5 @@
+<img width="1450" height="692" alt="image" src="https://github.com/user-attachments/assets/3efe95f2-9592-4bea-a95e-53e9ad8a0069" />
+
 # Paso Cristo Redentor
 
 Muestra el año entero del paso a Chile (Cristo Redentor / Los Libertadores), un cuadrado por día:
