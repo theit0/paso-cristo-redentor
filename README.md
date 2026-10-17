@@ -23,8 +23,7 @@ tooltip muestra la fecha y el estado.
 > - **La época del año.**
 > - **Cuántos días faltan:** cuanto más lejos, menos seguro.
 >
-> Con todo eso calcula qué chance hay de que esté cerrado. Si llega al 35% lo pinta de rojo: preferimos avisar
-> de más antes que decirte "abierto" y que llegues a la frontera y esté cerrado.
+> Con todo eso calcula qué chance hay de que esté cerrado. Si pasa del 50% lo pinta de rojo; si no, verde.
 >
 > Probándola con inviernos que no conocía, acertó más de 8 de cada 10 días. Más allá de una semana no hay pronóstico
 > del tiempo confiable, por eso esos días quedan en gris. Es una ayuda para planificar: antes de salir, siempre
@@ -62,10 +61,10 @@ tooltip muestra la fecha y el estado.
 - **1 a 7 días:** modelo con el pronóstico del tiempo.
 - **Más de 7 días:** gris. No hay pronóstico a esa distancia (el promedio de otros años se vería igual de firme
   que una predicción y no lo es).
-- **Criterio:** rojo si la probabilidad de cierre es **≥ 35%** (`UMBRAL_CERRADO` en
-  [routes.py](backend/app/api/routes.py)). Con el mismo % de aciertos que usar 50%, detecta 73% de los cierres en vez
-  de 63%: un verde equivocado (viajar y encontrarlo cerrado) cuesta más que un rojo equivocado.
+- **Criterio:** rojo si la probabilidad de cierre es **> 50%**; el 50% justo es verde (`UMBRAL_CERRADO` en
+  [routes.py](backend/app/api/routes.py)). Con 35% detectaba 73% de los cierres en vez de 63%, pero con más rojos falsos.
 - Los datos externos se cachean: estado y parte 10 min, clima e historial 1 h.
+- Rate limit: 30 pedidos por minuto por IP (en [main.py](backend/app/main.py)); pasado eso responde 429.
 
 ## Estructura
 

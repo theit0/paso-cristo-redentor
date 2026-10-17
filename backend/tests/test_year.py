@@ -13,8 +13,9 @@ def test_year_past_is_real_and_future_uses_threshold(monkeypatch):
     monkeypatch.setattr(live, "mendoza_report", lambda: None)
     monkeypatch.setattr(live, "status_history", lambda: {date(2026, 7, 20): "total", date(2026, 8, 20): "solo_cargas"})
     monkeypatch.setattr(live, "weather", lambda: ({}, {}))
-    # futuro: cerrado solo los días con probabilidad >= umbral
-    monkeypatch.setattr(routes, "prob_closed", lambda d, *a: 0.5 if d == date(2026, 10, 14) else 0.2)
+    # futuro: cerrado solo si la probabilidad supera el umbral; 50% justo es abierto
+    probs = {date(2026, 10, 14): 0.51, date(2026, 10, 16): 0.5}
+    monkeypatch.setattr(routes, "prob_closed", lambda d, *a: probs.get(d, 0.2))
 
     r = TestClient(app).get("/api/year").json()
     by = {d["fecha"]: d["cerrado"] for d in r["dias"]}
@@ -22,7 +23,7 @@ def test_year_past_is_real_and_future_uses_threshold(monkeypatch):
     assert by["2026-07-20"] and by["2026-08-20"]  # real; solo camiones cuenta como cerrado
     assert not by["2026-07-21"]
     assert not by["2026-10-13"]  # hoy: estado oficial
-    assert by["2026-10-14"] and not by["2026-10-15"]
+    assert by["2026-10-14"] and not by["2026-10-15"] and not by["2026-10-16"]
     assert by["2026-10-20"] is not None and by["2026-10-21"] is None  # más de 7 días: sin dato
     prob = {d["fecha"]: d["prob_cerrado"] for d in r["dias"]}
-    assert prob["2026-10-14"] == 0.5 and prob["2026-10-13"] is None and prob["2026-10-21"] is None
+    assert prob["2026-10-14"] == 0.51 and prob["2026-10-13"] is None and prob["2026-10-21"] is None

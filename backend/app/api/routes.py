@@ -7,9 +7,9 @@ from app import live, predict
 
 router = APIRouter(prefix="/api")
 
-# Rojo si P(cerrado) >= 35%. Con el mismo % de aciertos que 50%, detecta 73% de los cierres
-# en vez de 63%: un verde equivocado (viajar y encontrarlo cerrado) cuesta más que un rojo equivocado.
-UMBRAL_CERRADO = 0.35
+# Rojo solo si P(cerrado) > 50%; el 50% justo queda verde.
+# (Con 35% se detectaban 73% de los cierres en vez de 63%, a costa de más rojos falsos.)
+UMBRAL_CERRADO = 0.5
 
 
 @router.get("/health")
@@ -50,7 +50,7 @@ def year():
             cerrado = status.get(d, "abierto") != "abierto"
         elif (d - today).days <= predict.MAX_HORIZON:
             prob = prob_closed(d, today, status, obs, fc)
-            cerrado = prob >= UMBRAL_CERRADO
+            cerrado = prob > UMBRAL_CERRADO
         else:
             cerrado = None
         days.append({"fecha": d.isoformat(), "cerrado": cerrado, "prob_cerrado": None if prob is None else round(prob, 3)})
