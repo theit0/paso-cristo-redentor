@@ -1,5 +1,6 @@
 <img width="1324" height="602" alt="image" src="https://github.com/user-attachments/assets/902c8bb2-cea1-4213-8778-619461bf972b" />
-<img width="1258" height="642" alt="image" src="https://github.com/user-attachments/assets/e5084711-0890-4c75-b1d6-575851e37500" />
+<img width="1366" height="665" alt="image" src="https://github.com/user-attachments/assets/c324ce39-dfcd-4f3b-bc3d-37dc0d99dbb3" />
+
 
 
 # Paso Cristo Redentor
