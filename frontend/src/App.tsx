@@ -48,7 +48,9 @@ export default function App() {
   return (
     <main className="flex min-h-svh items-center justify-center px-3 py-10 sm:px-4">
       {error && <p className="text-red-600">No se pudo cargar: {error}</p>}
-      {!data && !error && <p className="text-neutral-500">Cargando…</p>}
+      {!data && !error && (
+        <div role="status" aria-label="Cargando" className="size-8 animate-spin rounded-full border-4 border-neutral-200 border-t-neutral-500" />
+      )}
 
       {data && (
         <div className="grid w-full max-w-6xl grid-cols-31 gap-[2px] sm:gap-1">
