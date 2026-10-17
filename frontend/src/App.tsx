@@ -23,7 +23,14 @@ function status(d: Dia) {
   return p === null ? label : `${label} ${p}%`
 }
 
-// Pasado (real) en tono claro; hoy y próximos 7 días (predicción) en tono pleno; más adelante, gris.
+// Días predichos: el cuadrado se llena de rojo desde abajo según P(cerrado) y el resto queda verde.
+// (Las variables las define Tailwind porque bg-red-500/bg-green-500 se usan abajo.)
+const fill = (prob: number) => {
+  const p = Math.round(prob * 100)
+  return { background: `linear-gradient(to top, var(--color-red-500) ${p}%, var(--color-green-500) ${p}%)` }
+}
+
+// Pasado (real) en tono claro; hoy (estado oficial) en tono pleno; más adelante, gris.
 function color(cerrado: boolean | null, pasado: boolean) {
   if (cerrado === null) return 'bg-neutral-200'
   if (pasado) return cerrado ? 'bg-red-200' : 'bg-green-200'
@@ -47,7 +54,7 @@ export default function App() {
       {!data && !error && <p className="text-neutral-500">Cargando…</p>}
 
       {data && (
-        <div className="grid w-full max-w-4xl grid-cols-31 gap-[2px] sm:gap-1">
+        <div className="grid w-full max-w-6xl grid-cols-31 gap-[2px] sm:gap-1">
           {data.dias.map((d, i) => {
             const col = i % COLS
             // cerca de los bordes, el tooltip se alinea hacia adentro para no salirse de la pantalla
@@ -60,13 +67,16 @@ export default function App() {
                 aria-label={`${tooltip(d.fecha)}: ${status(d)}`}
                 onMouseEnter={e => withMap && setHover({ fecha: d.fecha, below: e.currentTarget.getBoundingClientRect().top < CARD_H })}
                 onMouseLeave={() => withMap && setHover(null)}
-                className={`group relative aspect-square rounded-[2px] transition-transform sm:rounded-sm ${color(d.cerrado, d.fecha < data.hoy)} ${
+                style={d.prob_cerrado === null ? undefined : fill(d.prob_cerrado)}
+                className={`group relative aspect-square rounded-[2px] transition-transform sm:rounded-sm ${
+                  d.prob_cerrado === null ? color(d.cerrado, d.fecha < data.hoy) : ''
+                } ${
                   open ? 'z-20 scale-150' : '' // mismo estado que la tarjeta: si no, su compensación de escala puede quedar desfasada
                 }`}
               >
                 {pct(d) !== null && (
-                  // % en blanco dentro del cuadrado (en celular no entra)
-                  <span className="pointer-events-none absolute inset-0 hidden items-center justify-center text-[9px] font-semibold leading-none text-white sm:flex">
+                  // % en blanco dentro del cuadrado (en celular no entra); la sombra lo hace legible sobre el corte rojo/verde
+                  <span className="pointer-events-none absolute inset-0 hidden items-center justify-center text-[9px] font-semibold leading-none text-white [text-shadow:0_1px_2px_rgb(0_0_0/0.45)] sm:flex lg:text-[11px]">
                     {pct(d)}%
                   </span>
                 )}
