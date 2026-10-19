@@ -12,8 +12,8 @@ DATA_DIR = Path(os.getenv("PASO_DATA_DIR", REPO_DIR / "data"))
 PASSES_URL = "https://www.argentina.gob.ar/seguridad/pasosinternacionales/listado"
 PASS_ID = 29  # Sistema Cristo Redentor
 
-# prensa.mendoza.gob.ar no manda el intermedio Let's Encrypt YR1 (desde el certificado del 13/10/2026):
-# Windows lo baja solo, OpenSSL no. Se agrega a mano a los CA de certifi.
+# prensa.mendoza.gob.ar (CloudFront) no manda la cadena completa desde el certificado del 13/10/2026:
+# Windows baja los intermedios solo, OpenSSL no. Se agregan YR1 y Root YR (firmado por ISRG Root X1).
 SSL = ssl.create_default_context(cafile=certifi.where())
 SSL.load_verify_locations(Path(__file__).with_name("le-yr1.pem"))
 
