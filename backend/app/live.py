@@ -15,7 +15,7 @@ from app.collectors import pass_status
 
 # ponytail: Mendoza es UTC-3 fijo (sin horario de verano desde 2009); zoneinfo en Windows exige tzdata.
 TZ = timezone(timedelta(hours=-3))
-HTTP = httpx.Client(timeout=30, follow_redirects=True)
+HTTP = httpx.Client(timeout=30, follow_redirects=True, verify=config.SSL)
 
 
 def today() -> date:

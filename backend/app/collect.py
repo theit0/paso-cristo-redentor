@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import httpx
 
-from app import store
+from app import config, store
 from app.collectors import mendoza_report, pass_status
 
 log = logging.getLogger("collect")
@@ -35,7 +35,7 @@ COLLECTORS = {"status": collect_status, "mendoza": collect_mendoza}
 def run(kinds: list[str]) -> bool:
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     ok = True
-    with httpx.Client(timeout=30, follow_redirects=True) as client:
+    with httpx.Client(timeout=30, follow_redirects=True, verify=config.SSL) as client:
         for kind in kinds:
             try:
                 COLLECTORS[kind](client, now)

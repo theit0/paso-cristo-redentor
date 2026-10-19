@@ -1,5 +1,8 @@
 import os
+import ssl
 from pathlib import Path
+
+import certifi
 
 REPO_DIR = Path(__file__).resolve().parents[2]
 # Worktree de la rama `data` (ver README). En Actions se pasa por variable de entorno.
@@ -8,6 +11,11 @@ DATA_DIR = Path(os.getenv("PASO_DATA_DIR", REPO_DIR / "data"))
 # Ministerio de Seguridad: estado de los 156 pasos internacionales (JSON).
 PASSES_URL = "https://www.argentina.gob.ar/seguridad/pasosinternacionales/listado"
 PASS_ID = 29  # Sistema Cristo Redentor
+
+# prensa.mendoza.gob.ar no manda el intermedio Let's Encrypt YR1 (desde el certificado del 13/10/2026):
+# Windows lo baja solo, OpenSSL no. Se agrega a mano a los CA de certifi.
+SSL = ssl.create_default_context(cafile=certifi.where())
+SSL.load_verify_locations(Path(__file__).with_name("le-yr1.pem"))
 
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 # Un punto de cada lado: el paso cierra si cualquiera de los dos no está transitable.
