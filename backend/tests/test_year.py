@@ -91,3 +91,8 @@ def test_collected_records_reads_every_month_since_launch(monkeypatch):
     monkeypatch.setattr(live.HTTP, "get", lambda url, **kw: asked.append(url.rsplit("/", 1)[1]) or Resp())
     live._collected_records("prediccion")
     assert asked == ["2026-10.jsonl", "2026-11.jsonl", "2026-12.jsonl", "2027-01.jsonl"]
+
+
+def test_ttl_cache_calls_the_first_time_even_right_after_boot(monkeypatch):
+    monkeypatch.setattr(live.time, "monotonic", lambda: 5.0)  # máquina prendida hace 5 s (runner de GitHub)
+    assert live.ttl_cache(3600)(lambda: {"ok": 1})() == {"ok": 1}

@@ -27,7 +27,9 @@ def ttl_cache(seconds: int):
     """Cachea el último resultado de una función sin argumentos durante `seconds`.
     El lock evita que varios pedidos simultáneos con el caché vencido salgan todos a la API externa."""
     def deco(fn):
-        slot = {"at": 0.0, "value": None}
+        slot = {"at": float("-inf"), "value": None}
+        # no 0.0: monotonic() cuenta desde que arrancó la máquina; en una VM recién creada (GitHub Actions) es chico
+        # y el caché vacío parecía vigente
         lock = threading.Lock()
 
         @wraps(fn)
