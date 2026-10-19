@@ -31,7 +31,7 @@ jobs:
         working-directory: backend
         env:
           PASO_DATA_DIR: ${{ github.workspace }}/data
-        run: python -m app.collect status mendoza
+        run: python -m app.collect status mendoza prediccion
 
       - name: Guardar en rama data
         if: always() # guarda lo que se haya obtenido aunque una fuente falle

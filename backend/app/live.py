@@ -5,6 +5,7 @@ import threading
 import time
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
+from datetime import time as time_of_day  # `time` ya es el módulo
 from functools import wraps
 
 import httpx
@@ -69,12 +70,18 @@ def current_status(official: dict, report: dict | None) -> str:
     return ministry
 
 
+# Primer mes con datos del registrador (antes la app no existía): de acá en adelante se lee todo.
+INICIO = date(2026, 10, 1)
+
+
 def _collected_records(kind: str) -> list[dict]:
-    """Registros del registrador (rama data): de GitHub en producción (últimos 2 meses), del disco en local."""
+    """Registros del registrador (rama data), desde INICIO: de GitHub en producción, del disco en local."""
     if not config.GITHUB_TOKEN:
         return list(store.newest_first(kind))
-    t = today()
-    months = {t.strftime("%Y-%m"), (t.replace(day=1) - timedelta(days=1)).strftime("%Y-%m")}
+    months, m = [], INICIO
+    while m <= today():  # ponytail: un pedido a GitHub por mes (cacheado 1 h); con muchos años, listar la carpeta
+        months.append(m.strftime("%Y-%m"))
+        m = (m + timedelta(days=32)).replace(day=1)
     records = []
     for month in months:
         r = HTTP.get(f"https://api.github.com/repos/{config.GITHUB_REPO}/contents/{kind}/{month}.jsonl",
@@ -117,6 +124,23 @@ def closures_days() -> dict[date, str]:
 def status_history() -> dict[date, str]:
     """Estado por día: closures.csv (histórico curado) + registrador."""
     return {**closures_days(), **registrador_days(_collected_records("status"), _collected_records("mendoza"))}
+
+
+CORTE = time_of_day(12)  # hora límite del día anterior para la predicción que se evalúa
+
+
+@ttl_cache(3600)
+def past_predictions() -> dict[date, float]:
+    """P(cerrado) que el registrador guardó para cada día: la última hecha antes del mediodía del día anterior,
+    que es cuando uno planifica el viaje (la de la noche anterior ya es tarde para decidir)."""
+    out: dict[date, float] = {}
+    for r in sorted(_collected_records("prediccion"), key=lambda r: r["fetched_at"]):
+        made = datetime.fromisoformat(r["fetched_at"]).astimezone(TZ).replace(tzinfo=None)
+        for fecha, p in r["prob_cerrado"].items():
+            d = date.fromisoformat(fecha)
+            if made < datetime.combine(d - timedelta(days=1), CORTE):
+                out[d] = p
+    return out
 
 
 WORST = {"snowfall_sum": max, "precipitation_sum": max, "wind_speed_10m_max": max, "snow_depth_max": max,

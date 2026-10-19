@@ -7,10 +7,12 @@
 
 Muestra el año entero del paso a Chile (Cristo Redentor / Los Libertadores), un cuadrado por día:
 los días pasados en tono claro (lo que pasó), hoy y los 7 siguientes en tono pleno (la predicción) y el resto en gris.
-Verde abierto, rojo cerrado. Los días predichos muestran su % adentro del cuadrado.
+Verde abierto, rojo cerrado. Los días predichos se llenan de rojo desde abajo según la probabilidad de cierre.
+Los días en que la predicción falló llevan una esquina con el color que se había predicho (los aciertos quedan lisos),
+y arriba de la grilla está el % de aciertos desde que existe la app. Con los chevrons se navega a años anteriores (desde 2022).
 Al pasar el mouse por un día de hoy en adelante aparece un tooltip con la fecha, el resultado y un mapita de lo que
 cae ese día en la zona (nieve nueva de verde a rojo, lluvia en azul), estilo snow-forecast. En los días pasados el
-tooltip muestra la fecha y el estado.
+tooltip muestra la fecha, el estado y, si hay, qué se había predicho y si acertó.
 
 ## En pocas palabras
 
@@ -45,7 +47,9 @@ tooltip muestra la fecha y el estado.
   (lado argentino) y Portillo (lado chileno); se toma el peor de los dos.
 - **Histórico de cierres 2022–2026** ([datasets/closures.csv](datasets/closures.csv)): no existe uno oficial, así que
   se reconstruyó a mano desde ~4.000 titulares de prensa. 100 cierres, cada uno con su fuente.
-- **Registrador:** GitHub Actions guarda el estado del Ministerio y el parte de Mendoza en la rama `data` para ir sumando historial propio.
+- **Registrador:** GitHub Actions guarda cada hora el estado del Ministerio, el parte de Mendoza y la predicción
+  de los próximos 7 días en la rama `data` (`status/`, `mendoza/`, `prediccion/`, un `.jsonl` por mes, solo se agrega).
+  Así se suma historial propio y se puede medir cuánto acierta la app de verdad.
 
 ### 2. Modelo
 
@@ -68,6 +72,9 @@ tooltip muestra la fecha y el estado.
   que una predicción y no lo es).
 - **Criterio:** rojo si la probabilidad de cierre es **> 50%**; el 50% justo es verde (`UMBRAL_CERRADO` en
   [routes.py](backend/app/api/routes.py)). Con 35% detectaba 73% de los cierres en vez de 63%, pero con más rojos falsos.
+- **Aciertos:** cada día pasado se compara con la última predicción hecha **antes del mediodía del día anterior**
+  (cuando uno planifica el viaje; `CORTE` en [live.py](backend/app/live.py)). Acierta si `> 50%` coincide con lo que pasó.
+  Hay marcas desde octubre de 2026, cuando el registrador empezó a guardar predicciones; antes no había app.
 - Los datos externos se cachean: estado y parte 10 min, clima e historial 1 h.
 - Rate limit: 30 pedidos por minuto por IP (en [main.py](backend/app/main.py)); pasado eso responde 429.
 
@@ -124,15 +131,16 @@ python -m app.ml.export                             # entrenar y generar app/mod
 
 - `GET /api/snowmap` → nieve nueva (cm) y lluvia (mm) por día en una grilla de 16×12 puntos (costa del Pacífico a Mendoza),
   próximos 8 días.
-- `GET /api/year` → todos los días del año en curso: `{hoy, dias: [{fecha, cerrado, prob_cerrado}]}`
-  (`prob_cerrado` solo en los 7 días predichos; `cerrado: null` más allá).
+- `GET /api/year?anio=AAAA` → todos los días de ese año (por defecto el en curso; 404 fuera de 2022..hoy):
+  `{hoy, anio, primer_anio, aciertos: {acertados, total}, dias: [{fecha, cerrado, prob_cerrado, predicho, acerto}]}`.
+  `prob_cerrado` solo en los 7 días predichos; `cerrado: null` más allá; `predicho`/`acerto` en pasado y hoy si el
+  registrador guardó la predicción. `aciertos` cuenta todos los años desde que existe la app.
 
 ## Limitaciones
 
 - El histórico sale de la prensa: puede faltar algún cierre corto.
 - Hay 5 inviernos de datos; 2026 fue récord.
 - GitHub ejecuta el registrador con demoras (a veces pocas veces por día).
-- Dos colores esconden cuán segura es cada predicción (un 51% y un 99% se ven igual).
 - Es una estimación: antes de viajar, consultar las fuentes oficiales.
 
 ## Licencia
